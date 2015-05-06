@@ -1,0 +1,71 @@
+/* some style */
+body {
+    background-color: darkgray;
+}
+
+.app-container {
+    display: block;
+    position: absolute;
+    max-width: 500px;
+    background-color: #efefef;
+    height: 600px;
+    padding: 10px;
+}
+
+input.big {
+    font-size: xx-large;
+    text-align: center;
+    margin: auto;
+    margin-bottom: 20px;
+}
+
+.quick-buttons {
+    padding: 5px;
+    margin: auto;
+    margin-bottom: 20px;
+    width: 60%;
+}
+
+.quick-buttons a.button {
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    margin-left: 10px;
+    margin-right: 10px;
+    text-align: center;
+    text-decoration: none;
+    font-size: larger;
+    border-radius: 12px;
+    border: 1px solid darkgray;
+    color: navy;
+    background-color: white;
+}
+
+a.button:hover {
+    background-color: black;
+    color: white;
+}
+
+button.start {
+    font-size: x-large;
+    display: block;
+    margin: auto;
+    margin-top: 40px;
+    color: blue;
+}
+
+.navbar {
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.navbar .nav-button {
+    color: white;
+    font-weight: bold;
+    font-size: small;
+}
