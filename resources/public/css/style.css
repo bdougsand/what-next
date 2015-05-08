@@ -6,7 +6,7 @@ body {
 .app-container {
     display: block;
     position: absolute;
-    max-width: 500px;
+    width: 350px;
     background-color: #efefef;
     height: 600px;
     padding: 10px;
@@ -22,8 +22,15 @@ input.big {
 .quick-buttons {
     padding: 5px;
     margin: auto;
-    margin-bottom: 20px;
+    margin-top: 20px;
+    margin-bottom: 40px;
     width: 60%;
+}
+
+.quick-buttons.empty {
+    color: gray;
+    font-style: italic;
+    text-align: center;
 }
 
 .quick-buttons a.button {
@@ -36,21 +43,28 @@ input.big {
     text-decoration: none;
     font-size: larger;
     border-radius: 12px;
-    border: 1px solid darkgray;
+    border: 1px solid gray;
     color: navy;
     background-color: white;
+    box-shadow: -1px 1px 2px black;
 }
 
 a.button:hover {
-    background-color: black;
-    color: white;
+    box-shadow: -2px 2px 2px black;
+}
+
+a.button:active {
+    box-shadow: 0 0 1px black;
 }
 
 button.start {
-    font-size: x-large;
+    font-size: xx-large;
     display: block;
     margin: auto;
     margin-top: 40px;
+    padding: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
     color: blue;
 }
 
@@ -68,4 +82,89 @@ button.start {
     color: white;
     font-weight: bold;
     font-size: small;
+    text-align: center;
+}
+
+.timer {
+    font-size: xx-large;
+    font-weight: bold;
+    text-align: center;
+}
+
+.title-box {
+    font-size: xx-large;
+    margin: auto;
+    width: 60%;
+}
+
+.timer .symbol {
+    display: inline-block;
+    font-weight: bold;
+    margin: 10px;
+}
+
+.timer .title {
+    font-size: xx-large;
+}
+
+.actions {
+    background-color: rgba(255, 255, 255, 0.1);
+    width: 60%;
+    margin: auto;
+    text-align: center;
+}
+
+.action {
+    cursor: pointer;
+    font-size: xx-large;
+    margin: 15px;
+    border-radius: 20px;
+    background-color: white;
+    height: 40px;
+    width: 40px;
+}
+
+.action.cancel {
+    color: red;
+}
+
+.action.complete {
+    color: green;
+}
+
+.log {
+    width: 100%;
+}
+
+.log-entry {
+    position: relative;
+    border-bottom: 1px solid darkgray;
+    vertical-align: middle;
+}
+
+.log-entry:nth-child(even) {
+    background-color: white;
+}
+
+.log-entry .task-name {
+    font-weight: bold;
+    font-size: large;
+}
+
+.log-entry .duration {
+    color: gray;
+    font-size: small;
+    font-style: italic;
+}
+
+.log-entry .symbol {
+    position: absolute;
+    right: 10px;
+    top: 5px;
+    font-size: x-large;
+    width: 25px;
+    text-align: center;
+    border: 1px solid darkgray;
+    border-radius: 5px;
+    background-color: white;
 }

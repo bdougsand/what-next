@@ -11,7 +11,9 @@
                  [org.omcljs/om "0.8.8" :exclusions [cljsjs/react]]
                  [cljsjs/react-with-addons "0.13.1-0"]
 
-                 [cljsjs/pouchdb "3.4.0-1"]]
+                 #_[cljsjs/pouchdb "3.4.0-1"]
+                 ;; Persist atom to local data store.
+                 [alandipert/storage-atom "1.2.4"]]
 
   :plugins [[lein-cljsbuild "1.0.5"]
             [lein-figwheel "0.2.9"]]

@@ -1,11 +1,13 @@
 (ns ^:figwheel-always whats-next.core
-    (:require [cljs.core.async :refer [<! >! chan]]
+    (:require [cljs.core.async :refer [<! >! chan close!]]
 
               [om.core :as om :include-macros true]
               [om.dom :as dom :include-macros true]
 
+              [whats-next.csv :as csv]
               [whats-next.pouch :as pouch]
-              [whats-next.state :as state])
+              [whats-next.state :as state]
+              [whats-next.utils :as $])
     (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
 
 (enable-console-print!)
@@ -18,65 +20,143 @@
 
 ;; define your app data so that it doesn't get over-written on reload
 
-(def task-types (map (fn [x] {:symbol x}) "PABC"))
+(defonce app-state (atom {}))
 
-(def app-state (atom {:task-types task-types
-                      :current-task {:started 1430860055935}
-                      :work []}))
-
-(defn make-button [{:keys [symbol] :as task-type}]
-  (dom/a #js {:className "button"
-              :href "#"} symbol))
+(defn log-view [app owner]
+  (reify
+    om/IRender
+    (render [_]
+      (let [get-type (state/task-map app)
+            current (:current-task app)]
+        (dom/div nil
+                 (dom/table #js {:className "log"}
+                            (for [{:keys [type started ended]} (:work app)
+                                  :let [t (get-type type)]]
+                              (dom/tr nil
+                                      (dom/td #js {:className "log-entry"}
+                                              (dom/div #js {:className "task-name"}
+                                                       type)
+                                              (dom/div #js {:className "duration"}
+                                                       ($/pretty-duration (- ended started)))
+                                              #_(dom/div nil
+                                                       ($/pretty-relative-date
+                                                        ))
+                                              (dom/div #js {:className "symbol"}
+                                                       (:symbol t))))))
+                 (dom/a #js {:href "#"
+                             :onClick (state/goto-handler app :main)}
+                        "Back")
+                 #_
+                 (dom/table #js {:className "navbar"}
+                            (dom/tr nil
+                                    (dom/td #js {:className "nav-button"}
+                                            (dom/a #js {:href "#"
+                                                        :onClick (state/goto-handler app :main)}
+                                                   "Back")))))))))
 
 (defn quick-buttons [app owner]
   (reify
     om/IRender
     (render [_]
-      (let [types (:task-types app)]
+      (if-let [types (:task-types app)]
         (apply dom/div #js {:className "quick-buttons"}
-               (map make-button task-types))))))
+               (for [task-type (:task-types app)]
+                 (dom/a #js {:className "button"
+                             :href "#"
+                             :onClick #(om/transact! app
+                                                     (fn [app] (state/start-task app (:name task-type))))} (:symbol task-type))))
+
+        (dom/div #js {:className "quick-buttons empty"}
+                 "No Recent Tasks")))))
 
 (defn timer-view [app owner]
   (reify
     om/IInitState
     (init-state [_]
-      {:timer-chan (chan)})
+      {:timer-chan ($/interval-chan 1000)
+       :duration 0})
 
     om/IWillMount
     (will-mount [_]
-      )
+      (let [c (om/get-state owner :timer-chan)]
+        (go-loop []
+          (om/set-state! owner :duration
+                         (- (.valueOf (js/Date.))
+                            (get-in app [:current-task :started])))
 
-    om/IRender
-    (render [_]
-      )))
+          (when (<! c)
+            (recur)))))
+
+    om/IWillUnmount
+    (will-unmount [_]
+      (close! (om/get-state owner :timer-chan)))
+
+    om/IRenderState
+    (render-state [_ {:keys [duration]}]
+      (let [task (:current-task app)
+            task-name (:type task)
+            task-type (state/get-type app task-name)]
+        (dom/div nil
+                 (dom/div #js {:className "title-box"}
+                          (dom/span #js {:className "symbol"}
+                                   (:symbol task-type))
+                          (dom/span #js {:className "title"}
+                                   task-name))
+                 (dom/div #js {:className "timer"}
+                          ($/pretty-duration duration))
+                 (dom/div #js {:className "actions"}
+                          (dom/button #js {:className "action cancel"
+                                           :onClick #(om/transact! app state/cancel)}
+                                      "×")
+                          (dom/button #js {:className "action complete"
+                                           :onClick #(om/transact! app state/complete)}
+                                      "✓")))))))
 
 (defn start-view [app owner]
   (reify
-    om/IRender
-    (render [_]
-      (dom/div #js {:className "app-container"}
+    om/IInitState
+    (init-state [_]
+      {:text ""})
+
+    om/IRenderState
+    (render-state [_ {:keys [text]}]
+      (dom/div nil
                (om/build quick-buttons app)
                (dom/input #js {:className "big"
-                               :placeholder "What's Next?"})
+                               :placeholder "What's Next?"
+                               :value text
+                               :onChange #(om/set-state! owner :text
+                                                         (.. % -target -value))
+                               :onKeyDown (fn [e]
+                                            (when (= (.-keyCode e) 13)
+                                              (om/transact!
+                                               app
+                                               #(state/start-task % text))))})
                (dom/button #js {:className "start"
-                                :type "button"}
+                                :type "button"
+                                :onClick (fn [e]
+                                           (om/transact!
+                                            app
+                                            #(state/start-task % text)))}
                            "Start")
                (dom/table #js {:className "navbar"}
                           (dom/tr nil
-                                  (dom/td nil
-                                          (dom/a #js {:className "nav-button"}
-                                                 "Hi"))
-                                  (dom/td nil
-                                          (dom/a #js {:className "nav-button"}
+                                  (dom/td #js {:className "nav-button"}
+                                          (dom/a #js {:href "#"} "Hi"))
+                                  (dom/td #js {:className "nav-button"}
+                                          (dom/a #js {:href "#"
+                                                      :onClick (state/goto-handler app :log)}
                                                  "Work Log"))))))))
 
 (defn root-view [app-state owner]
   (reify
     om/IRender
     (render [_]
-      (case (:view app-state)
-        :timer (om/build timer-view app-state)
-        (om/build start-view app-state)))))
+      (dom/div #js {:className "app-container"}
+               (case (:view app-state)
+                 :timer (om/build timer-view app-state)
+                 :log (om/build log-view app-state)
+                 (om/build start-view app-state))))))
 
 (defn main []
   (om/root root-view app-state {:target (.getElementById js/document "app")}))
@@ -85,7 +165,10 @@
   (main)
 
   (add-watch app-state :title-watch (fn [old new _ _]
-                                      (set! (.-title js/document) (:title new)))))
+                                      (set! (.-title js/document)
+                                            (if-let [t (:title new)]
+                                              (str "What's Next? - " t)
+                                              "What's Next?")))))
 
 (defn deinit []
   (remove-watch app-state :title-watch))
