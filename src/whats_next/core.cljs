@@ -137,9 +137,21 @@
                  "No Recent Tasks")))))
 
 (defn summary-view
-  "Constructs a component that "
+  "Constructs a component that summarizes the day's work."
   [app owner]
-  )
+  (reify
+    om/IRender
+    (render [_]
+      (dom/div #js {:className "day-summary"}
+               (let [groups (group-by :type (:work app))
+                     tmap (state/task-map app)]
+                 (for [[type-name tasks] groups]
+                   (let [task-type (tmap type-name)]
+                     (dom/div #js {:className "task-summary"}
+                              (dom/span #js {:className "symbol"}
+                                        (:symbol task-type))
+                              (dom/span #js {:className ""}
+                                        ($/pretty-duration (total-duration tasks)))))))))))
 
 (defn start-view [app owner]
   (reify

@@ -61,11 +61,17 @@
   (pop view-stack))
 
 ;; Manipulating tasks
-(defn duration [task]
+(defn duration
+  "Duration, in milliseconds, of a given task."
+  [task]
   (- (:ended task) (:started task)))
 
 (defn total-duration [tasks]
   (reduce + (map duration tasks)))
+
+(defn summary [tasks]
+  {:count (count tasks)
+   :duration (total-duration tasks)})
 
 (def task-map
   ($/memo-last
@@ -101,7 +107,7 @@
   "Returns a transducer that filters an ordered input of tasks and
   outputs tasks that were started on the given day."
   [d]
-  (let [start($/start-of-day d)
+  (let [start ($/start-of-day d)
         end ($/inc-date start)]
     (between start end)))
 
@@ -116,3 +122,6 @@
                   (take n)
                   (map (task-map app)))
             (:work app)))
+
+(defn today-work [app]
+  (sequence (for-day ($/now)) (:work app)))
