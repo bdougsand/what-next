@@ -4,9 +4,10 @@
               [om.core :as om :include-macros true]
               [om.dom :as dom :include-macros true]
 
+              [alandipert.storage-atom :refer [local-storage]]
+
               [whats-next.csv :as csv]
-              [whats-next.pouch :as pouch]
-              [whats-next.state :as state]
+              [whats-next.state :as state :refer [total-duration]]
               [whats-next.utils :as $])
     (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
 
@@ -20,7 +21,29 @@
 
 ;; define your app data so that it doesn't get over-written on reload
 
-(defonce app-state (atom {}))
+(defonce app-state
+  (local-storage (atom {:view :main
+                        :view-stack [:main]})
+                 :app))
+
+(def view-buttons
+  {:main [["Work Log" :log]]
+   :timer [["Work Log" :log]]
+   :log [["Back" state/go-back]]})
+
+(defn navbar-view [app owner]
+  (reify
+    om/IRender
+    (render [_]
+      (let [view (peek (:view-stack app))]
+        (dom/table #js {:className "navbar"}
+                   (dom/tr nil
+                           (for [[label goto] (view-buttons view)]
+                             (dom/td #js {:className "nav-button"
+                                          :key label}
+                                    (dom/a #js {:href "#"
+                                                :onClick (state/goto-handler app goto)}
+                                           label)))))))))
 
 (defn log-view [app owner]
   (reify
@@ -42,39 +65,19 @@
                                                        ($/pretty-relative-date
                                                         ))
                                               (dom/div #js {:className "symbol"}
-                                                       (:symbol t))))))
-                 (dom/a #js {:href "#"
-                             :onClick (state/goto-handler app :main)}
-                        "Back")
-                 #_
-                 (dom/table #js {:className "navbar"}
-                            (dom/tr nil
-                                    (dom/td #js {:className "nav-button"}
-                                            (dom/a #js {:href "#"
-                                                        :onClick (state/goto-handler app :main)}
-                                                   "Back")))))))))
-
-(defn quick-buttons [app owner]
-  (reify
-    om/IRender
-    (render [_]
-      (if-let [types (:task-types app)]
-        (apply dom/div #js {:className "quick-buttons"}
-               (for [task-type (:task-types app)]
-                 (dom/a #js {:className "button"
-                             :href "#"
-                             :onClick #(om/transact! app
-                                                     (fn [app] (state/start-task app (:name task-type))))} (:symbol task-type))))
-
-        (dom/div #js {:className "quick-buttons empty"}
-                 "No Recent Tasks")))))
+                                                       (:symbol t)))))))))))
 
 (defn timer-view [app owner]
   (reify
     om/IInitState
     (init-state [_]
-      {:timer-chan ($/interval-chan 1000)
-       :duration 0})
+      (let [task (:current-task app)
+            today-log (into [] (state/for-day ($/now)) (:work app))
+            type-log (into [] (state/type-filter task) today-log)]
+        {:timer-chan ($/interval-chan 1000)
+         :duration 0
+         :duration-today (total-duration today-log)
+         :duration-today-type (total-duration type-log)}))
 
     om/IWillMount
     (will-mount [_]
@@ -92,16 +95,16 @@
       (close! (om/get-state owner :timer-chan)))
 
     om/IRenderState
-    (render-state [_ {:keys [duration]}]
+    (render-state [_ {:keys [duration duration-today duration-today-type]}]
       (let [task (:current-task app)
             task-name (:type task)
             task-type (state/get-type app task-name)]
         (dom/div nil
                  (dom/div #js {:className "title-box"}
                           (dom/span #js {:className "symbol"}
-                                   (:symbol task-type))
+                                    (:symbol task-type))
                           (dom/span #js {:className "title"}
-                                   task-name))
+                                    task-name))
                  (dom/div #js {:className "timer"}
                           ($/pretty-duration duration))
                  (dom/div #js {:className "actions"}
@@ -110,7 +113,33 @@
                                       "×")
                           (dom/button #js {:className "action complete"
                                            :onClick #(om/transact! app state/complete)}
-                                      "✓")))))))
+                                      "✓"))
+                 (dom/div #js {:className "summary"}
+                          (str ($/pretty-duration (+ duration duration-today-type))
+                               " today, this task; "
+                               ($/pretty-duration (+ duration duration-today))
+                               " total")))))))
+
+(defn quick-buttons [app owner]
+  (reify
+    om/IRender
+    (render [_]
+      (if-let [types (:task-types app)]
+        (apply dom/div #js {:className "quick-buttons"}
+               (for [task-type (state/recent-types app 8)]
+                 (dom/a #js {:className "button"
+                             :href "#"
+                             :title (str "Start Working on \"" (:name task-type) "\"")
+                             :onClick #(om/transact! app
+                                                     (fn [app] (state/start-task app (:name task-type))))} (:symbol task-type))))
+
+        (dom/div #js {:className "quick-buttons empty"}
+                 "No Recent Tasks")))))
+
+(defn summary-view
+  "Constructs a component that "
+  [app owner]
+  )
 
 (defn start-view [app owner]
   (reify
@@ -138,25 +167,19 @@
                                            (om/transact!
                                             app
                                             #(state/start-task % text)))}
-                           "Start")
-               (dom/table #js {:className "navbar"}
-                          (dom/tr nil
-                                  (dom/td #js {:className "nav-button"}
-                                          (dom/a #js {:href "#"} "Hi"))
-                                  (dom/td #js {:className "nav-button"}
-                                          (dom/a #js {:href "#"
-                                                      :onClick (state/goto-handler app :log)}
-                                                 "Work Log"))))))))
+                           "Start")))))
 
 (defn root-view [app-state owner]
   (reify
     om/IRender
     (render [_]
       (dom/div #js {:className "app-container"}
-               (case (:view app-state)
+               (case (peek (:view-stack app-state))
                  :timer (om/build timer-view app-state)
                  :log (om/build log-view app-state)
-                 (om/build start-view app-state))))))
+                 (om/build start-view app-state))
+
+               (om/build navbar-view app-state)))))
 
 (defn main []
   (om/root root-view app-state {:target (.getElementById js/document "app")}))

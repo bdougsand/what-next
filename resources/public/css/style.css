@@ -68,6 +68,7 @@ button.start {
     color: blue;
 }
 
+/* Navbar */
 .navbar {
     position: absolute;
     width: 100%;
@@ -83,8 +84,15 @@ button.start {
     font-weight: bold;
     font-size: small;
     text-align: center;
+
+    transition: background-color 0.3s;
 }
 
+.nav-button:hover {
+    background-color: white;
+}
+
+/* Timer View */
 .timer {
     font-size: xx-large;
     font-weight: bold;
@@ -132,6 +140,16 @@ button.start {
     color: green;
 }
 
+.summary {
+    position: absolute;
+    font-size: small;
+    font-style: italic;
+    right: 10px;
+    bottom: 60px;
+    color: #555;
+}
+
+/* Log Viewer */
 .log {
     width: 100%;
 }

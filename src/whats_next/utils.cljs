@@ -1,6 +1,8 @@
 (ns whats-next.utils
   (:require [cljs.core.async :refer [>! chan put! sliding-buffer]]))
 
+(defn now [] (js/Date.))
+
 (def floor (.-floor js/Math))
 
 (defn rfill [s w pad-str]
@@ -14,7 +16,7 @@
         h (floor (/ s 3600))
         m (floor (/ (mod s 3600) 60))
         s (mod s 60)]
-    (str (when (> 0 h) (str h ":"))
+    (str (when (> h 0) (str h ":"))
          (rfill (str m) 2 "0") ":"
          (rfill (str s) 2 "0"))))
 
@@ -64,11 +66,20 @@
     (js/Date. i)))
 
 (def day-components
-  (juxt #(+ 1900 (.getYear %)) #(inc (.getMonth %)) #(.getDate %)))
+  (juxt #(.getFullYear %) #(inc (.getMonth %)) #(.getDate %)))
 
 (defn same-day? [d dr]
   (= (day-components (->date d))
      (day-components (->date dr))))
+
+(defn start-of-day
+  "Returns a new Date object with the same day, month, and year as Date
+  d and the time set to midnight."
+  [d]
+  (js/Date. (.getFullYear d) (.getMonth d) (.getDate d)))
+
+(defn inc-date [d]
+  (js/Date. (+ (.valueOf d) 86400000)))
 
 (defn morning? [d]
   (< (.getHours d) 12))
