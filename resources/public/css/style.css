@@ -189,8 +189,15 @@ button.start {
 }
 
 /* Log Viewer */
-.log {
+.log-viewer {
     overflow-y: auto;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    bottom: 50px;
+}
+
+.log {
     width: 100%;
 }
 

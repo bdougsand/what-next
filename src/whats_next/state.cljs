@@ -45,6 +45,12 @@
   (assoc app
     :work ($/insert-where #(> (:started %) s) task (:work app))))
 
+(defn add-note-to-current
+  "Adds a note string to the current task, if any."
+  [{ct :current-task :as app} note]
+  (assoc app
+    :current-task (when ct
+                    (conj (:notes ct []) note))))
 
 ;; Navigation
 (defn goto-handler
@@ -117,6 +123,10 @@
   (let [start ($/start-of-day d)
         end ($/inc-date start)]
     (between start end)))
+
+(defn for-month [d]
+  (let [start ($/start-of-month d)]
+    (between start ($/inc-month start))))
 
 (defn for-today []
   (for-day ($/now)))

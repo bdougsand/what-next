@@ -38,14 +38,18 @@
     om/IRender
     (render [_]
       (let [view (peek (:view-stack app))]
-        (dom/table #js {:className "navbar"}
-                   (dom/tr nil
-                           (for [[label goto] (view-buttons view)]
-                             (dom/td #js {:className "nav-button"
-                                          :key label}
-                                    (dom/a #js {:href "#"
-                                                :onClick (state/goto-handler app goto)}
-                                           label)))))))))
+        (dom/div nil
+                 (dom/table #js {:className "navbar"}
+                    (dom/tr nil
+                            (for [[label goto] (view-buttons view)]
+                              (dom/td #js {:className "nav-button"
+                                           :key label}
+                                      (dom/a #js {:href "#"
+                                                  :onClick (state/goto-handler app goto)}
+                                             label)))))
+                 (when-let [ct (:current-task app)]
+                   (dom/div #js {:className "status-info"}
+                            "Currently working on:")))))))
 
 (defn log-view [app owner]
   (reify
@@ -53,7 +57,7 @@
     (render [_]
       (let [get-type (state/task-map app)
             current (:current-task app)]
-        (dom/div nil
+        (dom/div #js {:className "log-viewer"}
                  (dom/table #js {:className "log"}
                             (for [{:keys [type started ended]} (:work app)
                                   :let [t (get-type type)]]
@@ -62,10 +66,10 @@
                                               (dom/div #js {:className "task-name"}
                                                        type)
                                               (dom/div #js {:className "duration"}
-                                                       ($/pretty-duration (- ended started)))
-                                              #_(dom/div nil
+                                                       ($/pretty-duration (- ended started))
+                                                       " — "
                                                        ($/pretty-relative-date
-                                                        ))
+                                                        ended))
                                               (dom/div #js {:className "symbol"}
                                                        (:symbol t)))))))))))
 
