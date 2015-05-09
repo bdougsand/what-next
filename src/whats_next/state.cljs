@@ -38,6 +38,13 @@
     :current-task nil
     :view-stack (pop (:view-stack app))))
 
+(defn insert-task
+  "Insert a completed task at the appropriate place. Assumes that the
+  task was relatively recent."
+  [app {s :started :as task}]
+  (assoc app
+    :work ($/insert-where #(> (:started %) s) task (:work app))))
+
 
 ;; Navigation
 (defn goto-handler
@@ -111,6 +118,8 @@
         end ($/inc-date start)]
     (between start end)))
 
+(defn for-today []
+  (for-day ($/now)))
 
 (defn recent-types
   "Retrieves the n most recent task types as maps. Assumes that the

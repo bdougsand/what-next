@@ -4,12 +4,16 @@
               [om.core :as om :include-macros true]
               [om.dom :as dom :include-macros true]
 
+
+
+              ;; Persist the contents of the app atom
               [alandipert.storage-atom :refer [local-storage]]
 
               [whats-next.csv :as csv]
               [whats-next.state :as state :refer [total-duration]]
               [whats-next.utils :as $])
-    (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
+    (:require-macros [cljs.core.async.macros :refer [go-loop go]])
+    (:import [goog.ui.emoji PopupEmojiPicker]))
 
 (enable-console-print!)
 
@@ -18,8 +22,6 @@
 
 (defonce css-transition
   (.createFactory js/React css-react-class))
-
-;; define your app data so that it doesn't get over-written on reload
 
 (defonce app-state
   (local-storage (atom {:view :main
@@ -101,7 +103,7 @@
             task-type (state/get-type app task-name)]
         (dom/div nil
                  (dom/div #js {:className "title-box"}
-                          (dom/span #js {:className "symbol"}
+                          (dom/a #js {:className "symbol"}
                                     (:symbol task-type))
                           (dom/span #js {:className "title"}
                                     task-name))
@@ -122,16 +124,29 @@
 
 (defn quick-buttons [app owner]
   (reify
-    om/IRender
-    (render [_]
+    om/IInitState
+    (init-state [_]
+      ;; The quick button currently highlighted:
+      {:hover-type nil})
+
+    om/IRenderState
+    (render-state [_ {:keys [hover-type]}]
       (if-let [types (:task-types app)]
-        (apply dom/div #js {:className "quick-buttons"}
-               (for [task-type (state/recent-types app 8)]
-                 (dom/a #js {:className "button"
-                             :href "#"
-                             :title (str "Start Working on \"" (:name task-type) "\"")
-                             :onClick #(om/transact! app
-                                                     (fn [app] (state/start-task app (:name task-type))))} (:symbol task-type))))
+        (dom/div nil
+                 (dom/div #js {:className (str "quick-hover"
+                                               (when-not hover-type
+                                                 " empty"))}
+                  (:name hover-type
+                         "Quick Start"))
+         (apply dom/div #js {:className "quick-buttons"}
+                (for [task-type (state/recent-types app 8)]
+                  (dom/a #js {:className "button"
+                              :href "#"
+                              :title (str "Start Working on \"" (:name task-type) "\"")
+                              :onMouseEnter #(om/set-state! owner :hover-type task-type)
+                              :onMouseLeave #(om/set-state! owner :hover-type nil)
+                              :onClick #(om/transact! app
+                                                      (fn [app] (state/start-task app (:name task-type))))} (:symbol task-type)))))
 
         (dom/div #js {:className "quick-buttons empty"}
                  "No Recent Tasks")))))
@@ -143,7 +158,8 @@
     om/IRender
     (render [_]
       (dom/div #js {:className "day-summary"}
-               (let [groups (group-by :type (:work app))
+               (let [work (filter (state/for-today) (:work app))
+                     groups (group-by :type work)
                      tmap (state/task-map app)]
                  (for [[type-name tasks] groups]
                    (let [task-type (tmap type-name)]
@@ -179,7 +195,8 @@
                                            (om/transact!
                                             app
                                             #(state/start-task % text)))}
-                           "Start")))))
+                           "Start")
+               (om/build summary-view app)))))
 
 (defn root-view [app-state owner]
   (reify

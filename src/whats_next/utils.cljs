@@ -107,3 +107,7 @@
       "a while ago")))
   ([d]
    (pretty-relative-date d (js/Date.))))
+
+(defn insert-where [f x coll]
+  (concat (take-while f coll)
+          (cons x (drop-while f coll))))

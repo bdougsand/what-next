@@ -1,29 +1,37 @@
 /* some style */
 body {
     background-color: darkgray;
+    font-family: "Lucida Grande";
+}
+
+a {
+    text-decoration: none;
 }
 
 .app-container {
-    display: block;
-    position: absolute;
-    width: 350px;
     background-color: #efefef;
+    display: block;
     height: 600px;
     padding: 10px;
+    position: absolute;
+    width: 350px;
 }
 
+/* Start View */
 input.big {
     font-size: xx-large;
-    text-align: center;
-    margin: auto;
     margin-bottom: 20px;
+    margin: auto;
+    text-align: center;
 }
 
 .quick-buttons {
-    padding: 5px;
-    margin: auto;
-    margin-top: 20px;
+    border: 1px solid darkgray;
+    box-shadow: -1px 1px darkgray;
     margin-bottom: 40px;
+    margin-top: 10px;
+    margin: auto;
+    padding: 5px;
     width: 60%;
 }
 
@@ -34,19 +42,19 @@ input.big {
 }
 
 .quick-buttons a.button {
+    background-color: white;
+    border-radius: 12px;
+    border: 1px solid gray;
+    /* box-shadow: -1px 1px 2px black; */
+    color: navy;
     display: inline-block;
-    width: 25px;
+    font-size: larger;
     height: 25px;
     margin-left: 10px;
     margin-right: 10px;
     text-align: center;
     text-decoration: none;
-    font-size: larger;
-    border-radius: 12px;
-    border: 1px solid gray;
-    color: navy;
-    background-color: white;
-    box-shadow: -1px 1px 2px black;
+    width: 25px;
 }
 
 a.button:hover {
@@ -57,39 +65,63 @@ a.button:active {
     box-shadow: 0 0 1px black;
 }
 
-button.start {
-    font-size: xx-large;
-    display: block;
+.quick-hover {
+    font-size: small;
     margin: auto;
-    margin-top: 40px;
-    padding: 10px;
-    padding-top: 5px;
-    padding-bottom: 5px;
+    text-align: center;
+    width: 50%;
+}
+
+.quick-hover.empty {
+    color: darkgray;
+}
+
+button.start {
     color: blue;
+    display: block;
+    font-size: xx-large;
+    margin-top: 40px;
+    margin: auto;
+    padding-bottom: 5px;
+    padding-top: 5px;
+    padding: 10px;
+}
+
+.day-summary {
+    bottom: 60px;
+    position: absolute;
+    right: 10px;
 }
 
 /* Navbar */
 .navbar {
-    position: absolute;
-    width: 100%;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 50px;
     background-color: rgba(0, 0, 0, 0.5);
+    bottom: 0;
+    height: 50px;
+    left: 0;
+    position: absolute;
+    right: 0;
+    width: 100%;
 }
 
 .navbar .nav-button {
     color: white;
-    font-weight: bold;
     font-size: small;
+    font-weight: bold;
     text-align: center;
-
     transition: background-color 0.3s;
 }
 
 .nav-button:hover {
     background-color: white;
+}
+
+.nav-button:hover a {
+    color: black;
+}
+
+.nav-button a {
+    color: white;
 }
 
 /* Timer View */
@@ -102,33 +134,40 @@ button.start {
 .title-box {
     font-size: xx-large;
     margin: auto;
-    width: 60%;
+    text-align: center;
+    width: 80%;
 }
 
-.timer .symbol {
-    display: inline-block;
+.title-box a.symbol {
+    background-color: white;
+    border-radius: 5px;
+    border: 1px solid black;
+    cursor: pointer;
     font-weight: bold;
     margin: 10px;
+    padding-left: 5px;
+    padding-right: 5px;
 }
 
 .timer .title {
+    display: inline-block;
     font-size: xx-large;
 }
 
 .actions {
     background-color: rgba(255, 255, 255, 0.1);
-    width: 60%;
     margin: auto;
     text-align: center;
+    width: 60%;
 }
 
 .action {
+    background-color: white;
+    border-radius: 20px;
     cursor: pointer;
     font-size: xx-large;
-    margin: 15px;
-    border-radius: 20px;
-    background-color: white;
     height: 40px;
+    margin: 15px;
     width: 40px;
 }
 
@@ -141,22 +180,23 @@ button.start {
 }
 
 .summary {
-    position: absolute;
-    font-size: small;
-    font-style: italic;
-    right: 10px;
     bottom: 60px;
     color: #555;
+    font-size: small;
+    font-style: italic;
+    position: absolute;
+    right: 10px;
 }
 
 /* Log Viewer */
 .log {
+    overflow-y: auto;
     width: 100%;
 }
 
 .log-entry {
-    position: relative;
     border-bottom: 1px solid darkgray;
+    position: relative;
     vertical-align: middle;
 }
 
@@ -165,8 +205,8 @@ button.start {
 }
 
 .log-entry .task-name {
-    font-weight: bold;
     font-size: large;
+    font-weight: bold;
 }
 
 .log-entry .duration {
@@ -176,13 +216,13 @@ button.start {
 }
 
 .log-entry .symbol {
+    background-color: white;
+    border-radius: 5px;
+    border: 1px solid darkgray;
+    font-size: x-large;
     position: absolute;
     right: 10px;
-    top: 5px;
-    font-size: x-large;
-    width: 25px;
     text-align: center;
-    border: 1px solid darkgray;
-    border-radius: 5px;
-    background-color: white;
+    top: 5px;
+    width: 25px;
 }
