@@ -49,8 +49,9 @@
   "Adds a note string to the current task, if any."
   [{ct :current-task :as app} note]
   (assoc app
-    :current-task (when ct
-                    (conj (:notes ct []) note))))
+    :current-task (assoc ct
+                    :notes (when ct
+                             (conj (:notes ct []) note)))))
 
 ;; Navigation
 (defn goto-handler
