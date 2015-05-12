@@ -61,13 +61,11 @@
   (cond
    (keyword? view)
    (fn [e]
-     (prn "Going to" view)
      (om/transact! cursor :view-stack #(conj % view))
      (.preventDefault e))
 
    (ifn? view)
    (fn [e]
-     (prn "Going back")
      (om/transact! cursor :view-stack view)
      (.preventDefault e))))
 

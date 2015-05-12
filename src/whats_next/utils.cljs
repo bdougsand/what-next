@@ -50,7 +50,6 @@
     (reset! itvl
             (js/setInterval (fn []
                               (when-not (put! c (swap! i inc))
-                                (prn "Clearing interval!")
                                 (js/clearInterval @itvl)))
                             ms))
     c))
