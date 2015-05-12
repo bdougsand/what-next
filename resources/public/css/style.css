@@ -235,7 +235,15 @@ button.start {
 .notes {
     margin: auto;
     margin-top: 15px;
+    opacity: 0.3;
     width: 60%;
+
+    transition: opacity 0.3s;
+}
+
+.notes:hover,
+.notes:focus {
+    opacity: 1;
 }
 
 .notes textarea {
@@ -322,6 +330,15 @@ button.start {
     margin-top: 30px;
 }
 
+.day-col {
+    background-color: navy;
+    border-right: 1px solid lightgray;
+    color: white;
+    display: inline-block;
+    text-align: center;
+    width: 13.5%;
+}
+
 .calendar .day {
     border-bottom: 1px solid black;
     border-right: 1px solid black;
@@ -339,6 +356,20 @@ button.start {
     padding: 2px;
 }
 
-.day.worked .date {
-    background-color: lime;
+.day.worked {
+    background-color: lightgreen;
+}
+
+.calendar:hover .day.worked {
+
+}
+
+
+/* Export */
+textarea.export {
+    font-family: monospace;
+    font-size: medium;
+    margin-top: 40px;
+    width: 100%;
+    height: 60%;
 }

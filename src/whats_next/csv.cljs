@@ -8,4 +8,4 @@
   (str/join "," (map encode-cell row)))
 
 (defn csv [rows]
-  (map row-to-csv rows))
+  (str/join "\n" (map row-to-csv rows)))

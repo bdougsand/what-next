@@ -10,6 +10,7 @@
               [whats-next.calendar :refer [calendar-view]]
               [whats-next.csv :as csv]
               [whats-next.emoji :as emoji]
+              [whats-next.export-work :refer [export-view]]
               [whats-next.state :as state :refer [total-duration]]
               [whats-next.utils :as $])
     (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
@@ -29,9 +30,10 @@
 
 (def view-buttons
   {:main [["Work Log" :log] ["Calendar" :calendar]]
-   :timer [["Work Log" :log] ["Calendar" :calendar]]
+   :timer [["Work Log" :log] ["Calendar" :calendar] ["Export" :export]]
    :log [["Back" state/go-back]]
-   :calendar [["Back" state/go-back]]})
+   :calendar [["Back" state/go-back]]
+   :export [["Back" state/go-back]]})
 
 (defn navbar-view [app owner]
   (reify
@@ -79,8 +81,8 @@
     om/IInitState
     (init-state [_]
       (let [task (:current-task app)
-            today-log (into [] (state/for-day ($/now)) (:work app))
-            type-log (into [] (state/type-filter task) today-log)]
+            today-log (sequence (state/for-day ($/now)) (:work app))
+            type-log (sequence (state/type-filter (:type task)) today-log)]
         {:timer-chan ($/interval-chan 1000)
          :duration 0
          :duration-today (total-duration today-log)
@@ -250,6 +252,7 @@
                  :calendar (om/build calendar-view app-state
                                      {:init-state {:task-type (:name (first (:task-types app-state)))
                                                    :end-date ($/now)}})
+                 :export (om/build export-view app-state)
                  :timer (om/build timer-view app-state)
                  :log (om/build log-view app-state)
                  (om/build start-view app-state))

@@ -83,9 +83,8 @@
 (defn total-duration [tasks]
   (reduce + (map duration tasks)))
 
-(defn summary [tasks]
-  {:count (count tasks)
-   :duration (total-duration tasks)})
+(defn chain-length [tasks type d]
+  )
 
 (def task-map
   ($/memo-last
@@ -111,7 +110,7 @@
   (drop-while #(> (:started %) stamp)))
 
 (defn between [start end]
-  (comp (before (.valueOf end)) (since (.valueOf start))))
+  (comp (before end) (since start)))
 
 (def group-days
   (partition-by #($/day-components (js/Date. (:started %)))))
@@ -144,3 +143,8 @@
 
 (defn today-work [app]
   (sequence (for-day ($/now)) (:work app)))
+
+(defn day-groups [work]
+  (group-by #($/day-components
+              (js/Date. (:started %)))
+            work))

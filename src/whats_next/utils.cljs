@@ -45,8 +45,14 @@
 ;; Channel helpers
 (defn interval-chan [ms]
   (let [c (chan (sliding-buffer 1))
-        i (atom 0)]
-    (js/setInterval (fn [] (put! c (swap! i inc))) ms)
+        i (atom 0)
+        itvl (atom nil)]
+    (reset! itvl
+            (js/setInterval (fn []
+                              (when-not (put! c (swap! i inc))
+                                (prn "Clearing interval!")
+                                (js/clearInterval @itvl)))
+                            ms))
     c))
 
 ;; Function helpers
@@ -61,6 +67,8 @@
           (reset! m (f x)))))))
 
 ;; Date helpers:
+(def ms-in-day 86400000)
+
 (defn now [] (js/Date.))
 
 (defn ->date [i]
@@ -98,18 +106,32 @@
   [d]
   (js/Date. (.getFullYear d) (.getMonth d) (.getDate d)))
 
+(defn start-of-week
+  [d]
+  (js/Date. (- (.getTime (start-of-day d))
+               (* ms-in-day (.getDay d)))))
+
 (defn start-of-month
   "Returns a new Date object to midnight on the first day of the same
   month and year as the given Date d."
   [d]
   (js/Date. (.getFullYear d) (.getMonth d)))
 
-(defn inc-date [d]
-  (js/Date. (+ (.getTime d) 86400000)))
+(defn inc-date
+  ([d days]
+   (js/Date. (+ (.getTime d) (* days 86400000))))
+  ([d]
+   (inc-date d 1)))
 
 (defn date-range [d1 d2]
   (take-while #(< (.getTime %) (.getTime d2))
               (iterate inc-date d1)))
+
+(defn date-range-len [d1 days]
+  (let [d2 (js/Date. (+ (.getTime days) (* days 86400000)))]
+    (if (pos? days)
+      (date-range d1 d2)
+      (date-range d2 d1))))
 
 (defn inc-month [d]
   ;; This works even if the month of d is December
@@ -128,6 +150,9 @@
 
 (def day-names
   (js->clj (aget DateTimeSymbols "STANDALONEWEEKDAYS")))
+
+(def short-day-names
+  (js->clj (aget DateTimeSymbols "SHORTWEEKDAYS")))
 
 (defn day-name [d]
   (nth day-names (.getDay d)))
