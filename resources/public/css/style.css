@@ -360,8 +360,17 @@ button.start {
     background-color: lightgreen;
 }
 
+.day:active, .day:focus {
+    box-shadow: 0 0 2px 2px maroon inset;
+}
+
 .calendar:hover .day.worked {
 
+}
+
+.task-select {
+    float: right;
+    width: 50%;
 }
 
 
