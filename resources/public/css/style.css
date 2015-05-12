@@ -247,8 +247,14 @@ button.start {
 }
 
 .notes textarea {
+    border-width: 0;
     resize: none;
     width: 100%;
+}
+
+.notes:hover textarea,
+:notes:focus textarea {
+    border-width: 1px;
 }
 
 .notes textarea::-webkit-input-placeholder {
@@ -360,8 +366,8 @@ button.start {
     background-color: lightgreen;
 }
 
-.day:active, .day:focus {
-    box-shadow: 0 0 2px 2px maroon inset;
+.day.selected {
+    box-shadow: 0 0 2px 2px maroon inset !important;
 }
 
 .calendar:hover .day.worked {

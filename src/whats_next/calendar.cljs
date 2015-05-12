@@ -19,6 +19,10 @@
 
 (defn calendar-view [app owner]
   (reify
+    om/IInitState
+    (init-state [_]
+      {:expanded ($/day-components ($/now))})
+
     om/IRenderState
     (render-state [_ {:keys [end-date expanded task-type]}]
       (let [month (.getMonth end-date)
@@ -31,7 +35,7 @@
                            (:work app)))]
         (dom/div
          #js {:className "calendar-container"}
-         (dom/h3 nil task-type)
+         (dom/h3 nil "Task: " task-type)
          (dom/div
           #js {:className "calendar"}
           (dom/div
@@ -44,6 +48,8 @@
                            :let [dc ($/day-components date)
                                  work (work-by-date dc)]]
                        (dom/a #js {:className (str "day "
+                                                   (when (= dc expanded)
+                                                         "selected ")
                                                    (when (= (.getMonth date) month)
                                                      "this-month ")
                                                    (when work
