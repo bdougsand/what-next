@@ -1,6 +1,6 @@
 (ns whats-next.utils
   (:require [cljs.core.async :refer [>! chan put! sliding-buffer]])
-  (:import [goog.i18n DateTimeSymbols]))
+  (:import [goog.i18n DateTimeFormat DateTimeSymbols]))
 
 ;; String Utilities
 (defn rfill [s w pad-str]
@@ -42,12 +42,14 @@
     (when x
       (if (f x) x (recur xs)))))
 
+;; Channel helpers
 (defn interval-chan [ms]
   (let [c (chan (sliding-buffer 1))
         i (atom 0)]
     (js/setInterval (fn [] (put! c (swap! i inc))) ms)
     c))
 
+;; Function helpers
 (defn memo-last [f]
   (let [m (atom nil)
         last (atom nil)]
@@ -57,7 +59,6 @@
         (do
           (reset! last x)
           (reset! m (f x)))))))
-
 
 ;; Date helpers:
 (defn now [] (js/Date.))
@@ -69,7 +70,7 @@
 
 (defn ->stamp [x]
   (if (instance? js/Date x)
-    (.valueOf x)
+    (.getTime x)
     x))
 
 (def day-components
@@ -78,6 +79,10 @@
 (defn same-day? [d dr]
   (= (day-components d)
      (day-components dr)))
+
+(defn same-month? [d dr]
+  (and (= (.getMonth d) (.getMonth dr))
+       (= (.getYear d) (.getYear dr))))
 
 (defn yesterday? [d dr]
   (and (= (.getFullYear d) (.getFullYear dr))
@@ -100,7 +105,11 @@
   (js/Date. (.getFullYear d) (.getMonth d)))
 
 (defn inc-date [d]
-  (js/Date. (+ (.valueOf d) 86400000)))
+  (js/Date. (+ (.getTime d) 86400000)))
+
+(defn date-range [d1 d2]
+  (take-while #(< (.getTime %) (.getTime d2))
+              (iterate inc-date d1)))
 
 (defn inc-month [d]
   ;; This works even if the month of d is December
@@ -123,8 +132,8 @@
 (defn day-name [d]
   (nth day-names (.getDay d)))
 
-(def am-pm
-  (js->clj (aget DateTimeSymbols "AMPMS")))
+(def time-formatter
+  (DateTimeFormat. "H:mm a"))
 
 (defn pretty-relative-date
   "Returns a string describing the Date d with respect to "
@@ -147,12 +156,7 @@
            :else
            (day-name dr)))
         " at "
-        (let [h (mod (.getHours d) 12)]
-          (if (= h 0) "12" h))
-        ":"
-        (.getMinutes d)
-        " "
-        (am-pm (quot (.getHours d) 12))))))
+        (.format time-formatter d)))))
   ([d]
    (pretty-relative-date d (js/Date.))))
 

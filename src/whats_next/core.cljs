@@ -4,16 +4,15 @@
               [om.core :as om :include-macros true]
               [om.dom :as dom :include-macros true]
 
-
-
               ;; Persist the contents of the app atom
               [alandipert.storage-atom :refer [local-storage]]
 
+              [whats-next.calendar :refer [calendar-view]]
               [whats-next.csv :as csv]
+              [whats-next.emoji :as emoji]
               [whats-next.state :as state :refer [total-duration]]
               [whats-next.utils :as $])
-    (:require-macros [cljs.core.async.macros :refer [go-loop go]])
-    (:import [goog.ui.emoji PopupEmojiPicker]))
+    (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
 
 (enable-console-print!)
 
@@ -29,9 +28,10 @@
                  :app))
 
 (def view-buttons
-  {:main [["Work Log" :log]]
-   :timer [["Work Log" :log]]
-   :log [["Back" state/go-back]]})
+  {:main [["Work Log" :log] ["Calendar" :calendar]]
+   :timer [["Work Log" :log] ["Calendar" :calendar]]
+   :log [["Back" state/go-back]]
+   :calendar [["Back" state/go-back]]})
 
 (defn navbar-view [app owner]
   (reify
@@ -109,7 +109,8 @@
             notes (:notes task)]
         (dom/div nil
                  (dom/div #js {:className "title-box"}
-                          (dom/a #js {:className "symbol"}
+                          (dom/a #js {:className "symbol"
+                                      :onClick #(emoji/get-symbol (.-target %))}
                                  (:symbol task-type))
                           (dom/span #js {:className "title"}
                                     task-name))
@@ -127,16 +128,19 @@
                            #js {:onKeyDown (fn [e]
                                              (when (= (.-keyCode e) 13)
                                                (let [text (.. e -target -value)]
-                                                 (om/transact!
-                                                  app
-                                                  #(state/add-note-to-current
-                                                    % text)))))
+                                                 (when (pos? (count text))
+                                                   (om/transact!
+                                                    app
+                                                    #(state/add-note-to-current
+                                                      % text))
+                                                   (set! (.. e -target -value) "")
+                                                   (.preventDefault e)))))
                                 :placeholder "Add note"})
                           (when notes
                             (dom/div #js {:className "show-notes"}
                                      (dom/ul nil
                                              (for [note notes]
-                                        (dom/li nil note))))))
+                                               (dom/li nil note))))))
                  (dom/div #js {:className "summary"}
                           (str ($/pretty-duration (+ duration duration-today-type))
                                " today, this task; "
@@ -166,11 +170,27 @@
                               :title (str "Start Working on \"" (:name task-type) "\"")
                               :onMouseEnter #(om/set-state! owner :hover-type task-type)
                               :onMouseLeave #(om/set-state! owner :hover-type nil)
+                              :onFocus #(om/set-state! owner :hover-type task-type)
+                              :onBlur #(om/set-state! owner :hover-type nil)
                               :onClick #(om/transact! app
                                                       (fn [app] (state/start-task app (:name task-type))))} (:symbol task-type)))))
 
         (dom/div #js {:className "quick-buttons empty"}
                  "No Recent Tasks")))))
+
+(defn task-summary
+  [_ owner]
+  (reify
+    om/IRenderState
+    (render-state [_ {:keys [expanded? task-type work =]}]
+      (dom/div #js {:className "task-summary"
+                    :onClick (fn [e]
+                               (om/set-state! owner :expanded? (not expanded?))
+                               nil)}
+               (dom/span #js {:className "symbol"}
+                         (:symbol task-type))
+               (dom/span #js {:className ""}
+                         ($/pretty-duration (total-duration work)))))))
 
 (defn summary-view
   "Constructs a component that summarizes the day's work."
@@ -178,17 +198,19 @@
   (reify
     om/IRender
     (render [_]
-      (dom/div #js {:className "day-summary"}
-               (let [work (filter (state/for-today) (:work app))
-                     groups (group-by :type work)
-                     tmap (state/task-map app)]
-                 (for [[type-name tasks] groups]
-                   (let [task-type (tmap type-name)]
-                     (dom/div #js {:className "task-summary"}
-                              (dom/span #js {:className "symbol"}
-                                        (:symbol task-type))
-                              (dom/span #js {:className ""}
-                                        ($/pretty-duration (total-duration tasks)))))))))))
+      (let [work (into [] (state/for-today) (:work app))
+            groups (group-by :type work)
+            tmap (state/task-map app)]
+        (dom/div #js {:className "day-summary"}
+               (for [[type-name tasks] groups]
+                 (let [task-type (tmap type-name)]
+                   (dom/div #js {:className "task-summary"}
+                            (dom/span #js {:className "symbol"}
+                                      (:symbol task-type))
+                            (dom/span #js {:className "amount"}
+                                      ($/pretty-duration (total-duration tasks))))))
+               (dom/div #js {:className "all-tasks-summary"}
+                        ($/pretty-duration (total-duration work))))))))
 
 (defn start-view [app owner]
   (reify
@@ -225,6 +247,9 @@
     (render [_]
       (dom/div #js {:className "app-container"}
                (case (peek (:view-stack app-state))
+                 :calendar (om/build calendar-view app-state
+                                     {:init-state {:task-type (:name (first (:task-types app-state)))
+                                                   :end-date ($/now)}})
                  :timer (om/build timer-view app-state)
                  :log (om/build log-view app-state)
                  (om/build start-view app-state))

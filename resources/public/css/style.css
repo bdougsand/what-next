@@ -78,6 +78,7 @@ a.button:active {
 
 button.start {
     color: blue;
+    cursor: pointer;
     display: block;
     font-size: xx-large;
     margin-top: 40px;
@@ -87,10 +88,38 @@ button.start {
     padding: 10px;
 }
 
+/* button.start:hover { */
+/*     color: yellow; */
+/*     text-shadow: -1px 1px black; */
+/* } */
+
 .day-summary {
     bottom: 60px;
+    left: 10px;
     position: absolute;
-    right: 10px;
+    font-size: small;
+}
+
+.task-summary {
+    padding-bottom: 3px;
+}
+
+.task-summary .symbol {
+    background-color: gray;
+    border-radius: 2px;
+    color: white;
+    cursor: pointer;
+    display: inline-block;
+    height: 15px;
+    margin-right: 5px;
+    padding: 3px;
+    text-align: center;
+    width: 15px;
+}
+
+.all-tasks-summary {
+    text-align: right;
+    font-weight: bold;
 }
 
 /* Navbar */
@@ -131,8 +160,8 @@ button.start {
     font-size: small;
     padding: 4px;
     position: absolute;
-    right: 0;
-    top: 0;
+    right: 5px;
+    top: 5px;
 }
 
 /* Timer View */
@@ -156,10 +185,13 @@ button.start {
     border-radius: 5px;
     border: 1px solid black;
     cursor: pointer;
+    display: inline-block;
     font-weight: bold;
     margin: 10px;
     padding-left: 5px;
     padding-right: 5px;
+    text-align: center;
+    width: 30px;
 }
 
 .timer .title {
@@ -281,4 +313,32 @@ button.start {
     text-align: center;
     top: 5px;
     width: 25px;
+}
+
+/* Calendar */
+.calendar {
+    border-left: 1px solid black;
+    border-top: 1px solid black;
+    margin-top: 30px;
+}
+
+.calendar .day {
+    border-bottom: 1px solid black;
+    border-right: 1px solid black;
+    display: inline-block;
+    height: 40px;
+    width: 13.5%;
+}
+
+.day.this-month {
+   background-color: white;
+}
+
+.day .date {
+    display: inline-block;
+    padding: 2px;
+}
+
+.day.worked .date {
+    background-color: lime;
 }

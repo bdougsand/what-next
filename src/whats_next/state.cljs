@@ -92,7 +92,6 @@
    (fn [app]
      (into {} (map (fn [type] [(:name type) type])) (:task-types app)))))
 
-
 ;; Task filter helpers:
 (defn type-filter [task-type]
   (filter #(= (:type %) task-type)))
