@@ -396,3 +396,38 @@ textarea.export {
     width: 100%;
     height: 60%;
 }
+
+/* Timeline */
+.timeline-container {
+    margin-top: 20px;
+}
+
+.timeline-guide {
+    border-right: 1px solid crimson;
+}
+
+span.task {
+    background-color: lightgray;
+    box-shadow: 0 0 2px black inset;
+    display: inline-block;
+    height: 15px;
+    position: relative;
+}
+
+.timeline-task-info {
+    background-color: white;
+    border: 1px solid black;
+    display: none;
+    height: 0;
+    overflow: hidden;
+    padding: 5px;
+    position: absolute;
+    top: 100%;
+    transition: height 0.3s;
+}
+
+span.task:hover .timeline-task-info {
+    display: block;
+    font-size: small;
+    height: auto;
+}

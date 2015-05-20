@@ -11,6 +11,7 @@
               [whats-next.calendar :refer [calendar-view]]
               [whats-next.chains :as chain]
               [whats-next.export-work :refer [export-view]]
+              [whats-next.timeline :refer [timeline-view]]
               [whats-next.timer :refer [timer-view]]
 
               [whats-next.csv :as csv]
@@ -181,6 +182,7 @@
                                             app
                                             #(state/start-task % text)))}
                            "Start")
+               (om/build timeline-view (sequence (state/since ($/start-of-day ($/now))) (:work app)))
                (om/build summary-view app)))))
 
 (defn root-view [app-state owner]

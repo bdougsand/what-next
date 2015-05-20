@@ -171,6 +171,9 @@
 (def time-formatter
   (DateTimeFormat. "H:mm a"))
 
+(defn pretty-time [d]
+  (.format time-formatter d))
+
 (def date-formatter
   (DateTimeFormat. "MMMM d"))
 

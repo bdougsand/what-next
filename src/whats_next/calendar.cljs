@@ -33,6 +33,12 @@
                  " totaling "
                  ($/pretty-duration duration))))))
 
+;; State properties:
+;;  transduce-work: transducer that will be applied to the work
+;;  classify-day: function that takes a date and the work completed on
+;;   that date and returns a string with (a) class(es) to apply to the
+;;   corresponding day DOM element
+;;  day-contents: function that takes a date and the work completed on
 (defn calendar-view [app owner]
   (reify
     om/IInitState
@@ -40,26 +46,22 @@
       {:expanded ($/day-components ($/now))})
 
     om/IRenderState
-    (render-state [_ {:keys [end-date expanded task-type]}]
+    (render-state [_ {:keys [end-date expanded task-type transduce-work
+                             classify-day]}]
       (let [month (.getMonth end-date)
             start-date ($/start-of-week ($/inc-date end-date day-count))
             today? ($/same-day? ($/now) end-date)
             work-by-date (state/day-groups
                           (sequence
-                           (comp (state/between (.getTime start-date)
-                                                (.getTime end-date))
-                                 (state/type-filter task-type))
+                           (cond->
+                            (state/between (.getTime start-date)
+                                           (.getTime end-date))
+
+                            transduce-work (comp transduce-work))
                            (:work app)))]
         (dom/div
          #js {:className "calendar-container"}
-         (dom/h3 nil "Task: "
-                 (dom/div #js {:className "task-select"}
-                          (apply dom/select
-                                 #js {:onChange #(om/set-state! owner :task-type
-                                                                (.. % -target -value))
-                                      :value task-type}
-                                 (for [{n :name} (:task-types app)]
-                                   (dom/option #js {:value n} n)))))
+
          (dom/div
           #js {:className "calendar"}
           (dom/div
@@ -76,6 +78,8 @@
                                                      "selected ")
                                                    (when (= (.getMonth date) month)
                                                      "this-month ")
+                                                   (when classify-day
+                                                     ((classify-day date work)))
                                                    (when work
                                                      "worked"))
                                    :href "#"

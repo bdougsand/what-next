@@ -85,9 +85,6 @@
 (defn total-duration [tasks]
   (reduce + (map duration tasks)))
 
-(defn chain-length [tasks type d]
-  )
-
 (def task-map
   ($/memo-last
    (fn [app]
@@ -155,10 +152,12 @@
               (js/Date. (:started %)))
             work))
 
+;; TODO: It would be nice to (attempt to) rewrite this as a transducer,
+;; in case I eventually switch to asynchronous loading of tasks
 (defn day-groups-contiguous
   "Group tasks by the day on which they were started. Insert an empty
-  vector for each missing day. Each group is eager, but the overall
-  sequence is lazy."
+  vector for each missing day. Each group is eagerly calculated, but the
+  overall sequence is lazy."
   ([work ref-date]
    (lazy-seq
     (when-let [work (seq work)]
