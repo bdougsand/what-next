@@ -11,6 +11,7 @@
               [whats-next.calendar :refer [calendar-view]]
               [whats-next.chains :as chain]
               [whats-next.export-work :refer [export-view]]
+              [whats-next.task :refer [task-view]]
               [whats-next.timeline :refer [timeline-view]]
               [whats-next.timer :refer [timer-view]]
 
@@ -33,17 +34,17 @@
                         :view-stack [:main]})
                  :app))
 
-(defn goto-calendar
+(defn goto-task-view
   [app]
   (conj (:view-stack app)
-        [:calendar {:task-type (or (:type (:current-task app))
-                                   (:type (first (:work app))))}]))
+        [:task {:task-type (or (:type (:current-task app))
+                               (:type (first (:work app))))}]))
 
 (def view-buttons
-  {:main [["Work Log" :log] ["Task Overview" goto-calendar]]
-   :timer [["Work Log" :log] ["Task Overview" goto-calendar] ["Export" :export]]
+  {:main [["Work Log" :log] ["Task Overview" goto-task-view]]
+   :timer [["Work Log" :log] ["Task Overview" goto-task-view] ["Export" :export]]
    :log [["Back" state/go-back]]
-   :calendar [["Back" state/go-back]]
+   :task [["Back" state/go-back]]
    :export [["Back" state/go-back]]})
 
 (defn navbar-view [app owner]
@@ -192,9 +193,8 @@
       (dom/div #js {:className "app-container"}
                (let [[v p] (peek (:view-stack app-state))]
                  (case v
-                   :calendar (om/build calendar-view app-state
-                                       {:init-state
-                                        (assoc p :end-date ($/now))})
+                   :task (om/build task-view app-state
+                                   {:init-state (assoc p :end-date ($/now))})
                    :export (om/build export-view app-state
                                      {:init-state p})
                    :timer (om/build timer-view app-state

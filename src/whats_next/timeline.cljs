@@ -15,7 +15,7 @@
   calculated total duration of the given work will be used if this is
   not provided.
 
-  - guide-duration: Show guides representing intervals of the specified
+  - guide-width: Show guides representing intervals of the specified
   number of milliseconds.
 
   - include-gaps: If true, also render the gaps between tasks.
@@ -33,7 +33,14 @@
                            render-width 150}}]
       (let [total (or timeline-duration (total-duration work))]
         (dom/div #js {:className "timeline-container"}
-                 (for [task work
+                 (when guide-width
+                   (let [w (* (/ guide-width total) render-width)]
+                     (for [i (range (inc (/ total guide-width)))]
+                       (dom/div
+                        #js {:className "timeline-guide"
+                             :style #js {:left (* i w)
+                                         :width w}}))))
+                 (for [task (reverse work)
                        :let [d (duration task)
                              p (/ d total)
                              w (* render-width p)]]
@@ -43,11 +50,5 @@
                                (:type task))
                              (dom/div
                               #js {:className "timeline-task-info"}
-                              ($/pretty-duration (duration task)))))
-                 (when guide-width
-                   (let [w (* (/ guide-width total) render-width)]
-                     (for [i (range (inc (/ total guide-width)))]
-                       (dom/div
-                        #js {:className "timeline-guide"
-                             :style #js {:left (* i w)
-                                         :width w}})))))))))
+                              (:type task) "\n"
+                              ($/pretty-duration (duration task))))))))))

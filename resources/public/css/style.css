@@ -399,11 +399,18 @@ textarea.export {
 
 /* Timeline */
 .timeline-container {
+    background-color: white;
     margin-top: 20px;
+    padding: 1px;
+    position: relative;
 }
 
 .timeline-guide {
     border-right: 1px solid crimson;
+    bottom: 0;
+    top: 0;
+    pointer-events: none;
+    position: absolute;
 }
 
 span.task {
@@ -411,6 +418,7 @@ span.task {
     box-shadow: 0 0 2px black inset;
     display: inline-block;
     height: 15px;
+    opacity: 0.8;
     position: relative;
 }
 
