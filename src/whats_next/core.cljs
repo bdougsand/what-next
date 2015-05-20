@@ -9,6 +9,7 @@
 
               ;; Views:
               [whats-next.calendar :refer [calendar-view]]
+              [whats-next.chains :as chain]
               [whats-next.export-work :refer [export-view]]
               [whats-next.timer :refer [timer-view]]
 
@@ -31,9 +32,15 @@
                         :view-stack [:main]})
                  :app))
 
+(defn goto-calendar
+  [app]
+  (conj (:view-stack app)
+        [:calendar {:task-type (or (:type (:current-task app))
+                                   (:type (first (:work app))))}]))
+
 (def view-buttons
-  {:main [["Work Log" :log] ["Calendar" :calendar]]
-   :timer [["Work Log" :log] ["Calendar" :calendar] ["Export" :export]]
+  {:main [["Work Log" :log] ["Task Overview" goto-calendar]]
+   :timer [["Work Log" :log] ["Task Overview" goto-calendar] ["Export" :export]]
    :log [["Back" state/go-back]]
    :calendar [["Back" state/go-back]]
    :export [["Back" state/go-back]]})
@@ -42,7 +49,7 @@
   (reify
     om/IRender
     (render [_]
-      (let [view (peek (:view-stack app))]
+      (let [[view] (peek (:view-stack app))]
         (dom/div nil
                  (dom/table #js {:className "navbar"}
                     (dom/tr nil
@@ -52,6 +59,7 @@
                                       (dom/a #js {:href "#"
                                                   :onClick (state/goto-handler app goto)}
                                              label)))))
+
                  (when-let [ct (:current-task app)]
                    (dom/div #js {:className "status-info"}
                             "In Progress: "
@@ -89,7 +97,7 @@
     om/IRenderState
     (render-state [_ {:keys [hover-type]}]
       (if-let [types (:task-types app)]
-        (dom/div nil
+        (dom/div #js {:className "qb-container"}
                  (dom/div #js {:className (str "quick-hover"
                                                (when-not hover-type
                                                  " empty"))}
@@ -134,15 +142,17 @@
             groups (group-by :type work)
             tmap (state/task-map app)]
         (dom/div #js {:className "day-summary"}
-               (for [[type-name tasks] groups]
-                 (let [task-type (tmap type-name)]
-                   (dom/div #js {:className "task-summary"}
-                            (dom/span #js {:className "symbol"}
-                                      (:symbol task-type))
-                            (dom/span #js {:className "amount"}
-                                      ($/pretty-duration (total-duration tasks))))))
-               (dom/div #js {:className "all-tasks-summary"}
-                        ($/pretty-duration (total-duration work))))))))
+                 (dom/div #js {:className "title"}
+                          ($/pretty-date ($/now)))
+                 (for [[type-name tasks] groups]
+                   (let [task-type (tmap type-name)]
+                     (dom/div #js {:className "task-summary"}
+                              (dom/span #js {:className "symbol"}
+                                        (:symbol task-type))
+                              (dom/span #js {:className "amount"}
+                                        ($/pretty-duration (total-duration tasks))))))
+                 (dom/div #js {:className "all-tasks-summary"}
+                          ($/pretty-duration (total-duration work))))))))
 
 (defn start-view [app owner]
   (reify
@@ -152,7 +162,7 @@
 
     om/IRenderState
     (render-state [_ {:keys [text]}]
-      (dom/div nil
+      (dom/div #js {:className "main-container"}
                (om/build quick-buttons app)
                (dom/input #js {:className "big"
                                :placeholder "What Next?"
@@ -178,14 +188,19 @@
     om/IRender
     (render [_]
       (dom/div #js {:className "app-container"}
-               (case (peek (:view-stack app-state))
-                 :calendar (om/build calendar-view app-state
-                                     {:init-state {:task-type (:name (first (:task-types app-state)))
-                                                   :end-date ($/now)}})
-                 :export (om/build export-view app-state)
-                 :timer (om/build timer-view app-state)
-                 :log (om/build log-view app-state)
-                 (om/build start-view app-state))
+               (let [[v p] (peek (:view-stack app-state))]
+                 (case v
+                   :calendar (om/build calendar-view app-state
+                                       {:init-state
+                                        (assoc p :end-date ($/now))})
+                   :export (om/build export-view app-state
+                                     {:init-state p})
+                   :timer (om/build timer-view app-state
+                                    {:init-state p})
+                   :log (om/build log-view app-state
+                                  {:init-state p})
+                   (om/build start-view app-state
+                             {:init-state p})))
 
                (om/build navbar-view app-state)))))
 

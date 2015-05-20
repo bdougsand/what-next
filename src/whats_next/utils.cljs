@@ -68,7 +68,8 @@
 ;; Date helpers:
 (def ms-in-day 86400000)
 
-(defn now [] (js/Date.))
+(defn date? [x]
+  (instance? js/Date x))
 
 (defn ->date [i]
   (if (instance? js/Date i)
@@ -116,11 +117,22 @@
   [d]
   (js/Date. (.getFullYear d) (.getMonth d)))
 
+(defn now [] (js/Date.))
+
+(defn yesterday
+  "Returns a Date for the end of the day yesterday."
+  []
+  (js/Date. (dec (.getTime (start-of-day (now))))))
+
 (defn inc-date
   ([d days]
-   (js/Date. (+ (.getTime d) (* days 86400000))))
+   (js/Date. (+ (.getTime d) (* days ms-in-day))))
   ([d]
    (inc-date d 1)))
+
+(defn dec-date
+  [d days]
+  (js/Date. (- (.getTime d) (* days ms-in-day))))
 
 (defn date-range [d1 d2]
   (take-while #(< (.getTime %) (.getTime d2))
@@ -158,6 +170,12 @@
 
 (def time-formatter
   (DateTimeFormat. "H:mm a"))
+
+(def date-formatter
+  (DateTimeFormat. "MMMM d"))
+
+(defn pretty-date [d]
+  (.format date-formatter d))
 
 (defn pretty-relative-date
   "Returns a string describing the Date d with respect to "

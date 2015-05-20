@@ -20,16 +20,17 @@ a {
 /* Start View */
 input.big {
     font-size: xx-large;
-    margin-bottom: 20px;
-    margin: auto;
+    margin-bottom: 35px;
     text-align: center;
 }
 
+.qb-container {
+    padding-bottom: 20px;
+}
+
 .quick-buttons {
-    border: 1px solid darkgray;
-    box-shadow: -1px 1px darkgray;
-    margin-bottom: 40px;
-    margin-top: 10px;
+    background-color: white;
+    box-shadow: 0 0 5px maroon inset;
     margin: auto;
     padding: 5px;
     width: 60%;
@@ -50,8 +51,7 @@ input.big {
     display: inline-block;
     font-size: larger;
     height: 25px;
-    margin-left: 10px;
-    margin-right: 10px;
+    margin: 5px;
     text-align: center;
     text-decoration: none;
     width: 25px;
@@ -68,6 +68,7 @@ a.button:active {
 .quick-hover {
     font-size: small;
     margin: auto;
+    padding-bottom: 5px;
     text-align: center;
     width: 50%;
 }
@@ -98,6 +99,12 @@ button.start {
     left: 10px;
     position: absolute;
     font-size: small;
+}
+
+.day-summary .title {
+    font-weight: bold;
+    margin-bottom: 5px;
+    text-decoration: underline;
 }
 
 .task-summary {
@@ -375,8 +382,9 @@ button.start {
 }
 
 .task-select {
-    float: right;
+    display: inline-block;
     width: 50%;
+    -webkit-appearance: none;
 }
 
 

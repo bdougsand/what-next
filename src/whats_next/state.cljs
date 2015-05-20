@@ -16,7 +16,7 @@
                          :symbol (first type-name)}))
     :current-task {:type type-name
                    :started (.valueOf (js/Date.))}
-    :view-stack (conj (:view-stack app) :timer)))
+    :view-stack (conj (:view-stack app) [:timer])))
 
 (defn complete
   "Mark the current task as complete."
@@ -57,20 +57,24 @@
 (defn goto-handler
   "Returns an event handler will change the current view to the
   specified view."
-  [cursor view]
-  (cond
-   (keyword? view)
-   (fn [e]
-     (om/transact! cursor :view-stack #(conj % view))
-     (.preventDefault e))
+  ([cursor view props]
+   (cond
+    (keyword? view)
+    (fn [e]
+      (om/transact! cursor :view-stack #(conj % [view props]))
+      (.preventDefault e))
 
-   (ifn? view)
-   (fn [e]
-     (om/transact! cursor :view-stack view)
-     (.preventDefault e))))
+    (ifn? view)
+    (fn [e]
+      (om/transact! cursor (fn [app]
+                             (assoc app
+                               :view-stack (view app))))
+      (.preventDefault e))))
+  ([cursor view]
+   (goto-handler cursor view nil)))
 
-(defn go-back [view-stack]
-  (pop view-stack))
+(defn go-back [app]
+  (pop (:view-stack app)))
 
 ;; Manipulating tasks
 (defn duration
@@ -97,20 +101,24 @@
   "Returns a transducer that returns only tasks that started after the
   given time stamp. Assumes that the input is sorted by start time,
   descending."
-  [stamp]
-  (take-while #(> (:started %) stamp)))
+  [d]
+  (let [stamp ($/->stamp d)]
+    (take-while #(> (:started %) stamp))))
 
 (defn before
   "Returns a transducer that returns only tasks that started before the
   given time stamp. Assumes that the input is sorted by start time,
   descending."
-  [stamp]
-  (drop-while #(> (:started %) stamp)))
+  [d]
+  (let [stamp ($/->stamp d)]
+    (drop-while #(> (:started %) stamp))))
 
 (defn between [start end]
   (comp (before end) (since start)))
 
 (def group-days
+  "Transducer that groups tasks according to the day on which they were
+  begun."
   (partition-by #($/day-components (js/Date. (:started %)))))
 
 (defn for-day
@@ -146,3 +154,37 @@
   (group-by #($/day-components
               (js/Date. (:started %)))
             work))
+
+(defn day-groups-contiguous
+  "Group tasks by the day on which they were started. Insert an empty
+  vector for each missing day. Each group is eager, but the overall
+  sequence is lazy."
+  ([work ref-date]
+   (lazy-seq
+    (when-let [work (seq work)]
+      (loop [[w & ws :as work] work, matches []]
+        (if (and w ($/same-day? (js/Date. (:started w)) ref-date))
+          (recur ws (conj matches w))
+
+          (cons matches
+                (day-groups-contiguous work ($/dec-date ref-date 1))))))))
+  ([work]
+   (when-let [w (first work)]
+     (day-groups-contiguous work (js/Date. (:started w))))))
+
+(defn daily-tasks
+  ([work]
+   (sequence (comp
+              group-days
+              (map #(into #{} (map :type) %)))
+             work)))
+
+(defn group-contiguous-days
+  [work ref-date]
+  (lazy-seq
+   (when-let [tasks (seq work)]
+     (let [f #($/same-day? ($/->date (:started %)) ref-date)
+           date-tasks (take-while f tasks)]
+       (cons [ref-date date-tasks]
+             (group-contiguous-days (drop (count date-tasks) tasks)
+                                    ($/dec-date ref-date 1)))))))

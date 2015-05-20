@@ -5,7 +5,23 @@
             [whats-next.state :as state]
             [whats-next.utils :as $]))
 
-(def day-count -10)
+(def day-count -21)
+
+(defn day-totals [work]
+  (map state/total-duration (state/day-groups-contiguous work)))
+
+(defn task-summary-view [work owner]
+  (reify
+    om/IRenderState
+    (render-state [_ _]
+      (let [totals (day-totals work)]
+        (dom/ul #js {}
+                (dom/li nil "Last 7 days: "
+                        ($/pretty-duration
+                         (reduce + (take 7 totals))))
+                (dom/li nil "Last 30 days: "
+                        ($/pretty-duration
+                         (reduce + (take 30 totals)))))))))
 
 (defn day-summary-view [work owner]
   (reify
@@ -27,6 +43,7 @@
     (render-state [_ {:keys [end-date expanded task-type]}]
       (let [month (.getMonth end-date)
             start-date ($/start-of-week ($/inc-date end-date day-count))
+            today? ($/same-day? ($/now) end-date)
             work-by-date (state/day-groups
                           (sequence
                            (comp (state/between (.getTime start-date)
@@ -35,7 +52,14 @@
                            (:work app)))]
         (dom/div
          #js {:className "calendar-container"}
-         (dom/h3 nil "Task: " task-type)
+         (dom/h3 nil "Task: "
+                 (dom/div #js {:className "task-select"}
+                          (apply dom/select
+                                 #js {:onChange #(om/set-state! owner :task-type
+                                                                (.. % -target -value))
+                                      :value task-type}
+                                 (for [{n :name} (:task-types app)]
+                                   (dom/option #js {:value n} n)))))
          (dom/div
           #js {:className "calendar"}
           (dom/div
@@ -49,7 +73,7 @@
                                  work (work-by-date dc)]]
                        (dom/a #js {:className (str "day "
                                                    (when (= dc expanded)
-                                                         "selected ")
+                                                     "selected ")
                                                    (when (= (.getMonth date) month)
                                                      "this-month ")
                                                    (when work
@@ -59,12 +83,12 @@
                               (dom/div #js {:className "date"}
                                        (.getDate date)))))))
 
-         (dom/div #js {:className "task-select"}
-                  (apply dom/select
-                         #js {:onChange #(om/set-state! owner :task-type
-                                                        (.. % -target -value))}
-                         (for [{n :name} (:task-types app)]
-                           (dom/option #js {:value n} n))))
+
 
          (when expanded
-           (om/build day-summary-view (work-by-date expanded))))))))
+           (om/build day-summary-view (work-by-date expanded)))
+
+         (om/build task-summary-view (sequence (comp
+                                                (state/before (.getTime end-date))
+                                                (state/type-filter task-type))
+                                               (:work app))))))))
