@@ -152,6 +152,22 @@
               (js/Date. (:started %)))
             work))
 
+(defn gap? [task]
+  (= (:type task) :gap))
+
+(defn with-gaps
+  "Returns a new transducer that will insert special 'gap' tasks
+  between tasks."
+  []
+  (comp ($/staggered (fn [ntask task]
+                       (if ntask
+                         [{:type :gap
+                           :started (:ended task)
+                           :ended (:started ntask)}
+                          task]
+                         [task])))
+        (mapcat identity)))
+
 ;; TODO: It would be nice to (attempt to) rewrite this as a transducer,
 ;; in case I eventually switch to asynchronous loading of tasks
 (defn day-groups-contiguous

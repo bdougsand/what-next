@@ -400,26 +400,33 @@ textarea.export {
 /* Timeline */
 .timeline-container {
     background-color: white;
+    margin: auto;
     margin-top: 20px;
-    padding: 1px;
+    padding: 3px;
     position: relative;
 }
 
 .timeline-guide {
-    border-right: 1px solid crimson;
+    border-right: 3px solid pink;
     bottom: 0;
     top: 0;
     pointer-events: none;
     position: absolute;
 }
 
+.task, .gap {
+    display: inline-block;
+}
+
 span.task {
     background-color: lightgray;
     box-shadow: 0 0 2px black inset;
-    display: inline-block;
-    height: 15px;
-    opacity: 0.8;
+    color: white;
+    font-size: x-small;
+    height: 20px;
+    line-height: 20px;
     position: relative;
+    text-align: center;
 }
 
 span.task:hover {
@@ -429,13 +436,16 @@ span.task:hover {
 .timeline-task-info {
     background-color: white;
     border: 1px solid black;
+    color: black;
     display: none;
     height: 0;
     overflow: hidden;
     padding: 5px;
     position: absolute;
+    text-align: left;
     top: 100%;
     transition: height 0.3s;
+    width: 150px;
 }
 
 span.task:hover .timeline-task-info {

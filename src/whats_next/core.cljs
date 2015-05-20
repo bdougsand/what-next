@@ -8,7 +8,6 @@
               [alandipert.storage-atom :refer [local-storage]]
 
               ;; Views:
-              [whats-next.calendar :refer [calendar-view]]
               [whats-next.chains :as chain]
               [whats-next.export-work :refer [export-view]]
               [whats-next.task :refer [task-view]]
@@ -183,7 +182,11 @@
                                             app
                                             #(state/start-task % text)))}
                            "Start")
-               (om/build timeline-view (sequence (state/since ($/start-of-day ($/now))) (:work app)))
+               (om/build timeline-view
+                         (sequence (state/since ($/start-of-day ($/now))) (:work app))
+                         {:state {:render-width 250
+                                  :task-map (state/task-map app)
+                                  :show-labels true}})
                (om/build summary-view app)))))
 
 (defn root-view [app-state owner]

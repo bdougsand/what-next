@@ -20,6 +20,18 @@
          (rfill (str m) 2 "0") ":"
          (rfill (str s) 2 "0"))))
 
+;; Something like this may already exist in the Closure library
+(defn pretty-duration-med [ms]
+  (let [s (floor (/ ms 1000))
+        h (floor (/ s 3600))
+        m (floor (/ (mod s 3600) 60))
+        s (mod s 60)]
+    (if (pos? h)
+      (str h "h"
+           (when (pos? m) (str ", " m "m")))
+      (str m "m"
+           (when (pos? s) (str ", " s "s"))))))
+
 (defn pretty-duration-long [ms]
   (let [s (floor (/ ms 1000))
         h (floor (/ s 3600))
@@ -41,6 +53,20 @@
   (loop [[x & xs] coll]
     (when x
       (if (f x) x (recur xs)))))
+
+;; Transducers
+(defn staggered
+  ""
+  [f]
+  (fn [xf]
+    (let [last (volatile! nil)]
+      (fn
+        ([] (xf))
+        ([result] (xf result))
+        ([result input]
+         (let [last-val @last]
+           (vreset! last input)
+           (xf result (f last-val input))))))))
 
 ;; Channel helpers
 (defn interval-chan [ms]
@@ -169,7 +195,7 @@
   (nth day-names (.getDay d)))
 
 (def time-formatter
-  (DateTimeFormat. "H:mm a"))
+  (DateTimeFormat. "h:mm a"))
 
 (defn pretty-time [d]
   (.format time-formatter d))

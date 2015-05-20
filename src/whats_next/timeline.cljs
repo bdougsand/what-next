@@ -5,7 +5,6 @@
             [whats-next.state :as state :refer [duration total-duration]]
             [whats-next.utils :as $]))
 
-
 (defn timeline-view
   "Displays task work in a timeline view.
 
@@ -28,10 +27,11 @@
     om/IRenderState
     (render-state [_ {:keys [guide-width include-gaps
                              render-width show-labels
-                             timeline-duration]
+                             task-map timeline-duration]
                       :or {guide-width 1500000
                            render-width 150}}]
-      (let [total (or timeline-duration (total-duration work))]
+      (let [work (if include-gaps (into [] (state/with-gaps) work) work)
+            total (or timeline-duration (total-duration work))]
         (dom/div #js {:className "timeline-container"}
                  (when guide-width
                    (let [w (* (/ guide-width total) render-width)]
@@ -44,11 +44,30 @@
                        :let [d (duration task)
                              p (/ d total)
                              w (* render-width p)]]
-                   (dom/span #js {:className "task"
-                                  :style #js {:width w}}
-                             (when show-labels
-                               (:type task))
-                             (dom/div
-                              #js {:className "timeline-task-info"}
-                              (:type task) "\n"
-                              ($/pretty-duration (duration task))))))))))
+                   (if (state/gap? task)
+                     (dom/span #js {:className "gap"
+                                    :style #js {:width w}})
+
+                     (dom/span #js {:className "task"
+                                    :style #js {:width w}}
+                               (when show-labels
+                                 (dom/strong nil
+                                  (or (get-in task-map [(:type task) :symbol])
+                                      (:type task))))
+                               (dom/div
+                                #js {:className "timeline-task-info"}
+                                (dom/strong nil (:type task))
+                                (dom/br nil)
+                                ($/pretty-time ($/->date (:started task)))
+                                "–"
+                                ($/pretty-time ($/->date (:ended task)))
+                                (dom/br nil)
+                                "("
+                                ($/pretty-duration-med (duration task))
+                                ")"))))
+
+                 ;; When gaps are included, show the start time of the
+                 ;; first task on the timeline.
+                 (when include-gaps
+                   (dom/div #js {:className "timeline-start"}
+                            ($/pretty-time ($/->date (:started (peek work))) ))))))))
