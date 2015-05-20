@@ -422,6 +422,10 @@ span.task {
     position: relative;
 }
 
+span.task:hover {
+    background-color: gray;
+}
+
 .timeline-task-info {
     background-color: white;
     border: 1px solid black;
