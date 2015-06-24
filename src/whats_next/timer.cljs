@@ -4,10 +4,19 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
 
+            [goog.events :as events]
+            [goog.events.KeyCodes :as kc]
+
             [whats-next.emoji :as emoji]
             [whats-next.state :as state :refer [total-duration]]
             [whats-next.utils :as $])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
+
+(defn on-keypress [app e]
+  (when (= (.. e -target -tagName toLowerCase) "body")
+    (condp = (.-keyCode e)
+      kc/ESC (om/transact! app state/cancel)
+      kc/SPACE (om/transact! app state/complete))))
 
 (defn timer-view [app owner]
   (reify
@@ -19,7 +28,9 @@
         {:timer-chan ($/interval-chan 1000)
          :duration 0
          :duration-today (total-duration today-log)
-         :duration-today-type (total-duration type-log)}))
+         :duration-today-type (total-duration type-log)
+
+         :listener-key nil}))
 
     om/IWillMount
     (will-mount [_]
@@ -30,11 +41,18 @@
                             (get-in app [:current-task :started])))
 
           (when (<! c)
-            (recur)))))
+            (recur))))
+
+      ;; Attach the key listener:
+      (om/set-state! owner :listener-key
+                     (events/listen js/document "keypress"
+                                    (partial on-keypress app))))
 
     om/IWillUnmount
     (will-unmount [_]
-      (close! (om/get-state owner :timer-chan)))
+      (close! (om/get-state owner :timer-chan))
+
+      (some->  (om/get-state owner :listener-key) (events/unlistenByKey)))
 
     om/IRenderState
     (render-state [_ {:keys [duration duration-today duration-today-type]}]

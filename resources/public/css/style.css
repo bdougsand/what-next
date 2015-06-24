@@ -422,6 +422,7 @@ span.task {
     background-color: lightgray;
     box-shadow: 0 0 2px black inset;
     color: white;
+    cursor: pointer;
     font-size: x-small;
     height: 20px;
     line-height: 20px;
@@ -431,6 +432,10 @@ span.task {
 
 span.task:hover {
     background-color: gray;
+}
+
+span.task.same-as-next {
+    border-right: none !important;
 }
 
 .timeline-task-info {

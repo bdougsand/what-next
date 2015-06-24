@@ -1,6 +1,6 @@
 (defproject whats-next "0.1.0-SNAPSHOT"
-  :description "FIXME: write this!"
-  :url "http://example.com/FIXME"
+  :description "A simple time tracker."
+  :url "http://whatnext.dapptic.com"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
@@ -45,7 +45,7 @@
 
   :figwheel {
              ;; :http-server-root "public" ;; default and assumes "resources"
-             ;; :server-port 3449 ;; default
+             :server-port 3450 ;; default
              :css-dirs ["resources/public/css"] ;; watch and update CSS
 
              ;; Start an nREPL server into the running figwheel process

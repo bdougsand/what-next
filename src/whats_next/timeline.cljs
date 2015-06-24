@@ -35,12 +35,12 @@
         (dom/div #js {:className "timeline-container"}
                  (when guide-width
                    (let [w (* (/ guide-width total) render-width)]
-                     (for [i (range (inc (/ total guide-width)))]
+                     (for [i (range (/ total guide-width))]
                        (dom/div
                         #js {:className "timeline-guide"
                              :style #js {:left (* i w)
                                          :width w}}))))
-                 (for [task (reverse work)
+                 (for [[{ttype :type :as task} ntask] (partition 2 1 (reverse (cons nil work)))
                        :let [d (duration task)
                              p (/ d total)
                              w (* render-width p)]]
@@ -48,15 +48,18 @@
                      (dom/span #js {:className "gap"
                                     :style #js {:width w}})
 
-                     (dom/span #js {:className "task"
+                     (dom/span #js {:className (str "task "
+                                                    (when (= ttype (:type ntask))
+                                                      "same-as-next"))
+                                    :data-taskType ttype
                                     :style #js {:width w}}
                                (when show-labels
                                  (dom/strong nil
-                                  (or (get-in task-map [(:type task) :symbol])
-                                      (:type task))))
+                                             (or (get-in task-map [ttype :symbol])
+                                                 (:type task))))
                                (dom/div
                                 #js {:className "timeline-task-info"}
-                                (dom/strong nil (:type task))
+                                (dom/strong nil ttype)
                                 (dom/br nil)
                                 ($/pretty-time ($/->date (:started task)))
                                 "–"
@@ -64,10 +67,14 @@
                                 (dom/br nil)
                                 "("
                                 ($/pretty-duration-med (duration task))
-                                ")"))))
+                                ")"
+                                (when-let [notes (:notes task)]
+                                  (dom/ul nil
+                                          (for [note notes]
+                                            (dom/li nil note))))))))
 
                  ;; When gaps are included, show the start time of the
                  ;; first task on the timeline.
                  (when include-gaps
                    (dom/div #js {:className "timeline-start"}
-                            ($/pretty-time ($/->date (:started (peek work))) ))))))))
+                            ($/pretty-time ($/->date (:started (peek work)))))))))))
