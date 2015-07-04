@@ -231,6 +231,23 @@
   ([d]
    (pretty-relative-date d (js/Date.))))
 
+(defn ms-to-hour
+  "Returns the number of milliseconds until the next hour after the
+  given Date d."
+  ([d]
+   (+ (* (- 60 (.getMinutes d)) 60000)
+      (* (- 60 (.getSeconds d)) 1000)
+      (- 1000 (.getMilliseconds d))))
+  ([]
+   (ms-to-hour (js/Date.))))
+
+(defn ms-to-day
+  ([d]
+   (+ (ms-to-hour d)
+      (* (- 24 (.getHours d)) 3600000)))
+  ([]
+   (ms-to-day (js/Date.))))
+
 (defn insert-where [f x coll]
   (concat (take-while f coll)
           (cons x (drop-while f coll))))

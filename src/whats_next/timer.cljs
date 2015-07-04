@@ -9,14 +9,19 @@
 
             [whats-next.emoji :as emoji]
             [whats-next.state :as state :refer [total-duration]]
-            [whats-next.utils :as $])
+            [whats-next.utils :as $]
+
+            [whats-next.api.audio :as audio])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
-(defn on-keypress [app e]
+(defn on-keyup [app e]
   (when (= (.. e -target -tagName toLowerCase) "body")
     (condp = (.-keyCode e)
       kc/ESC (om/transact! app state/cancel)
       kc/SPACE (om/transact! app state/complete))))
+
+;; Show an
+(def alert-interval (* 10 60000))
 
 (defn timer-view [app owner]
   (reify
@@ -29,24 +34,37 @@
          :duration 0
          :duration-today (total-duration today-log)
          :duration-today-type (total-duration type-log)
+         :listener-key nil
 
-         :listener-key nil}))
+         ;; Bookkeeping, to prevent double-alerts:
+         ;; The interval count for the current session:
+         :last-duration-alert 0
+         ;; The interval count of the last alert for the current task:
+         :last-task-duration-alert 0}))
 
     om/IWillMount
     (will-mount [_]
       (let [c (om/get-state owner :timer-chan)]
         (go-loop []
-          (om/set-state! owner :duration
-                         (- (.valueOf (js/Date.))
-                            (get-in app [:current-task :started])))
+          (let [duration (- (.valueOf (js/Date.))
+                            (get-in app [:current-task :started]))]
+            (om/set-state! owner :duration duration)
+
+            ;; Produce an alert if the user has been working for a
+            ;; multiple of
+            (let [i-count (quot duration alert-interval)]
+              (when (> i-count (om/get-state owner :last-duration-alert))
+                (audio/play-audio "/sounds/coin.mp3")
+                (om/set-state! owner :last-duration-alert i-count)))
+            )
 
           (when (<! c)
             (recur))))
 
       ;; Attach the key listener:
       (om/set-state! owner :listener-key
-                     (events/listen js/document "keypress"
-                                    (partial on-keypress app))))
+                     (events/listen js/document "keyup"
+                                    (partial on-keyup app))))
 
     om/IWillUnmount
     (will-unmount [_]

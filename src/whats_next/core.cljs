@@ -1,5 +1,5 @@
 (ns ^:figwheel-always whats-next.core
-    (:require [cljs.core.async :refer [<! >! chan close!]]
+    (:require [cljs.core.async :refer [<! >! chan close! timeout]]
 
               [om.core :as om :include-macros true]
               [om.dom :as dom :include-macros true]
@@ -159,7 +159,21 @@
   (reify
     om/IInitState
     (init-state [_]
-      {:text ""})
+      {:text ""
+       :days 0})
+
+    om/IWillMount
+    (will-mount [_]
+      ;; Force the view to refresh
+      (go-loop []
+        (when-not (om/get-state owner :dismounted)
+          (<! (timeout ($/ms-to-day)))
+          (om/update-state! owner :days inc)
+          (recur))))
+
+    om/IWillUnmount
+    (will-unmount [_]
+      (om/set-state! owner :dismounted true))
 
     om/IRenderState
     (render-state [_ {:keys [text]}]
