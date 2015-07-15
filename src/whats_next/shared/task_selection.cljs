@@ -4,7 +4,6 @@
 
             [whats-next.utils :as $]))
 
-#_
 (defn task-selector [app f]
   (apply dom/select
          #js {:onChange (fn [e]
