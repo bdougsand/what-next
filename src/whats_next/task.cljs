@@ -6,7 +6,9 @@
             [whats-next.calendar :refer [calendar-view]]
 
             [whats-next.state :as state]
-            [whats-next.utils :as $]))
+            [whats-next.utils :as $]
+
+            [whats-next.shared.task-selection :refer [task-selector]]))
 
 (defn classify-day [day work]
   (when work "worked"))
@@ -37,12 +39,8 @@
        #js {:className "task-overview-container"}
        (dom/h3 nil "Task: "
                (dom/div #js {:className "task-select"}
-                        (apply dom/select
-                               #js {:onChange #(om/set-state! owner :task-type
-                                                              (.. % -target -value))
-                                    :value task-type}
-                               (for [{n :name} (:task-types app)]
-                                 (dom/option #js {:value n} n)))))
+                        (task-selector app
+                                       #(om/set-state! owner :task-type %))))
 
        (om/build calendar-view app
                  {:state {:day-count day-count

@@ -458,3 +458,13 @@ span.task:hover .timeline-task-info {
     font-size: small;
     height: auto;
 }
+
+.pomodori {
+
+}
+
+.pomodoro {
+    height: 5px;
+    width: 10px;
+    background-color: crimson;
+}

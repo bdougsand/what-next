@@ -15,7 +15,8 @@
               [whats-next.timer :refer [timer-view]]
 
               [whats-next.csv :as csv]
-              [whats-next.emoji :as emoji]
+              [whats-next.emoji :as emeoji]
+              [whats-next.goals :refer [goals-view]]
               [whats-next.state :as state :refer [total-duration]]
               [whats-next.utils :as $])
     (:require-macros [cljs.core.async.macros :refer [go-loop go]]))

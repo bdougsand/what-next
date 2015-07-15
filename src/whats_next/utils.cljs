@@ -56,7 +56,8 @@
 
 ;; Transducers
 (defn staggered
-  ""
+  "Creates a transducer that calls f with the previous step's input and
+  the current step's input."
   [f]
   (fn [xf]
     (let [last (volatile! nil)]
@@ -251,3 +252,6 @@
 (defn insert-where [f x coll]
   (concat (take-while f coll)
           (cons x (drop-while f coll))))
+
+(defn cancel [e]
+  (doto e (.stopPropagation) (.preventDefault)))

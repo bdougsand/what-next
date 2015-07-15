@@ -1,5 +1,5 @@
 (ns whats-next.api.notification
-  (:require [chan put!])
+  (:require [cljs.core.async :refer [chan close! put!]])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (defn request-permission []
@@ -11,7 +11,5 @@
                               (put! c :granted))
                             (close! c)))
 
-      (catch Exception _
+      (catch js/Error _
         (close! c)))))
-
-(defn )

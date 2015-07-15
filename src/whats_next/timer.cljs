@@ -11,14 +11,16 @@
             [whats-next.state :as state :refer [total-duration]]
             [whats-next.utils :as $]
 
-            [whats-next.api.audio :as audio])
+            [whats-next.api.audio :as audio]
+            [whats-next.shared.pomodori :as pom])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
 (defn on-keyup [app e]
   (when (= (.. e -target -tagName toLowerCase) "body")
     (condp = (.-keyCode e)
       kc/ESC (om/transact! app state/cancel)
-      kc/SPACE (om/transact! app state/complete))))
+      kc/SPACE (om/transact! app state/complete)
+      nil)))
 
 ;; Show an
 (def alert-interval (* 10 60000))
@@ -51,12 +53,11 @@
             (om/set-state! owner :duration duration)
 
             ;; Produce an alert if the user has been working for a
-            ;; multiple of
+            ;; multiple of alert-interval
             (let [i-count (quot duration alert-interval)]
               (when (> i-count (om/get-state owner :last-duration-alert))
                 (audio/play-audio "/sounds/coin.mp3")
-                (om/set-state! owner :last-duration-alert i-count)))
-            )
+                (om/set-state! owner :last-duration-alert i-count))))
 
           (when (<! c)
             (recur))))
@@ -73,7 +74,8 @@
       (some->  (om/get-state owner :listener-key) (events/unlistenByKey)))
 
     om/IRenderState
-    (render-state [_ {:keys [duration duration-today duration-today-type]}]
+    (render-state [_ {:keys [duration duration-today duration-today-type
+                             last-duration-alert]}]
       (let [task (:current-task app)
             task-name (:type task)
             task-type (state/get-type app task-name)
@@ -86,6 +88,8 @@
                           (dom/span #js {:className "title"}
                                     task-name))
                  (dom/div #js {:className "timer"}
+                          (when (pos? last-duration-alert)
+                            (pom/pomodori last-duration-alert))
                           ($/pretty-duration duration))
                  (dom/div #js {:className "actions"}
                           (dom/button #js {:className "action cancel"
