@@ -31,7 +31,7 @@
 
 (defonce app-state
   (local-storage (atom {:view :main
-                        :view-stack [:main]})
+                        :view-stack [[:main]]})
                  :app))
 
 (defn goto-task-view
