@@ -92,7 +92,11 @@
 
 ;; Task filter helpers:
 (defn type-filter [task-type]
-  (filter #(= (:type %) task-type)))
+  (cond (string? task-type)
+        (filter #(= (:type %) task-type))
+
+        (set? task-type)
+        (filter task-type)))
 
 (defn since
   "Returns a transducer that returns only tasks that started after the
@@ -121,14 +125,33 @@
 (defn for-day
   "Returns a transducer that filters an ordered input of tasks and
   outputs tasks that were started on the given day."
-  [d]
-  (let [start ($/start-of-day d)
-        end ($/inc-date start)]
-    (between start end)))
+  ([d & [n]]
+   (let [start ($/start-of-day d)
+         end ($/inc-date start (or n 1))]
+     (between start end)))
+  ([]
+   (for-day ($/now))))
 
-(defn for-month [d]
-  (let [start ($/start-of-month d)]
-    (between start ($/inc-month start))))
+(defn for-week
+  ([d]
+   (let [start ($/start-of-week d)]
+     (between start ($/inc-week start ))))
+  ([]
+   (for-week ($/now))))
+
+(defn for-month
+  ([d]
+   (let [start ($/start-of-month d)]
+     (between start ($/inc-month start))))
+  ([]
+   (for-month ($/now))))
+
+(defn for-year
+  ([d]
+   (let [start ($/start-of-year d)]
+     (between start ($/inc-year start))))
+  ([]
+   (for-year ($/now))))
 
 (defn for-today []
   (for-day ($/now)))
@@ -203,3 +226,55 @@
        (cons [ref-date date-tasks]
              (group-contiguous-days (drop (count date-tasks) tasks)
                                     ($/dec-date ref-date 1)))))))
+
+
+;; Managing goals
+(defn condition-active? [])
+
+(defn active-conditions
+  "Calculate or retrieve the currently active goal conditions."
+  [app]
+  )
+
+(defn add-condition [])
+
+(defmulti make-condition
+  "Convert a condition description into a reducing function."
+  first)
+
+;; Possible time conditions:
+;;  <keyword> - in the past interval
+;;  [<#> <keyword>] in the past interval
+
+(defmethod make-condition :time
+  [[_ when]]
+  (cond (keyword? when)
+        ;; Recurring goals:
+        (case when
+          :today (for-today)
+          :week (for-week)
+          :month (for-month)
+          :year (for-year))
+
+        ;;
+        (vector? when)
+        (let [[w1 w2] when]
+          (if (keyword? w2)
+            ;; Recurring goal
+            (since (- ((case w2
+                         :day $/start-of-day
+                         :week $/start-of-week
+                         :month $/start-of-month
+                         :year $/start-of-year))
+                      (* (interval w2) (dec w1))))
+
+            (between w1 w2)))))
+
+(defmethod make-condition :type
+  [[_ t]]
+  (type-filter t))
+
+(defn make-conditions-reducer
+  "Takes a sequence of conditions and returns a reducer function"
+  [conds]
+  (apply comp (map make-condition conds)))

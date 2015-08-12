@@ -144,6 +144,10 @@
   [d]
   (js/Date. (.getFullYear d) (.getMonth d)))
 
+(defn start-of-year
+  [d]
+  (js/Date. (.getFullYear d) 0 1))
+
 (defn now [] (js/Date.))
 
 (defn yesterday
@@ -161,7 +165,10 @@
   [d days]
   (js/Date. (- (.getTime d) (* days ms-in-day))))
 
-(defn date-range [d1 d2]
+(defn date-range
+  "Returns a lazy sequence of Date objects, starting at Date d1 and
+  incrementing by one day up to but not including d2."
+  [d1 d2]
   (take-while #(< (.getTime %) (.getTime d2))
               (iterate inc-date d1)))
 
@@ -171,9 +178,25 @@
       (date-range d1 d2)
       (date-range d2 d1))))
 
-(defn inc-month [d]
+(defn inc-week
+  ([d & [n]]
+   (js/Date. (+ (.getTime d) (* 86400000 7 (or n 1)))))
+  ([]
+   (inc-week (now))))
+
+(defn inc-month [d & [n]]
   ;; This works even if the month of d is December
-  (js/Date. (.getFullYear d) (inc (.getMonth d))))
+  (js/Date. (.getFullYear d) (+ (.getMonth d) (or n 1))))
+
+(defn inc-year [d & [n]]
+  (js/Date. (+ (or n 1) (.getFullYear d)) (.getMonth d)))
+
+(defn inc-type [d unit n]
+  ((case unit
+     :day inc-date
+     :week inc-week
+     :month inc-month
+     :year inc-year) d n))
 
 (defn morning? [d]
   (< (.getHours d) 12))
