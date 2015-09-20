@@ -20,6 +20,7 @@
     (condp = (.-keyCode e)
       kc/ESC (om/transact! app state/cancel)
       kc/SPACE (om/transact! app state/complete)
+      kc/R (om/transact! app state/restart)
       nil)))
 
 ;; Show an
@@ -49,7 +50,8 @@
       (let [c (om/get-state owner :timer-chan)]
         (go-loop []
           (let [duration (- (.valueOf (js/Date.))
-                            (get-in app [:current-task :started]))]
+                            (get-in (om/get-props owner)
+                                    [:current-task :started]))]
             (om/set-state! owner :duration duration)
 
             ;; Produce an alert if the user has been working for a

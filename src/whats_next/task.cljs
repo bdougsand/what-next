@@ -40,7 +40,8 @@
        (dom/h3 nil "Task: "
                (dom/div #js {:className "task-select"}
                         (task-selector app
-                                       #(om/set-state! owner :task-type %))))
+                                       #(om/set-state! owner :task-type %)
+                                       task-type)))
 
        (om/build calendar-view app
                  {:state {:day-count day-count

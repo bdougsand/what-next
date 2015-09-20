@@ -98,10 +98,13 @@
 (defn date? [x]
   (instance? js/Date x))
 
-(defn ->date [i]
-  (if (instance? js/Date i)
-    i
-    (js/Date. i)))
+(defn ->date
+  ([i]
+   (if (instance? js/Date i)
+     i
+     (js/Date. i)))
+  ([y m d]
+   (js/Date. y (dec m) d)))
 
 (defn ->stamp [x]
   (if (instance? js/Date x)
@@ -132,6 +135,9 @@
   d and the time set to midnight."
   [d]
   (js/Date. (.getFullYear d) (.getMonth d) (.getDate d)))
+
+(defn end-of-day [d]
+  (js/Date. (dec (.getTime (js/Date. (.getFullYear d) (.getMonth d) (inc (.getDate d)))))))
 
 (defn start-of-week
   [d]

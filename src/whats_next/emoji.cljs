@@ -5,14 +5,15 @@
             [goog.dom.DomHelper]
             [goog.events :as events])
 
-  (:import [goog.ui.emoji PopupEmojiPicker]
+  (:import [goog.dom DomHelper]
+           [goog.ui.emoji PopupEmojiPicker]
            [goog.ui.Component EventType]))
 
 (defn get-symbol
   [elt]
   (let [c (chan)
-        chooser (PopupEmojiPicker. "/image/none.gif"
-                                   (gdom/getDomHelper elt))]
+        chooser (PopupEmojiPicker. "/image/none.gif")]
+    (.render chooser elt)
     (events/listen EventType.ACTION
                    (fn [e]
                      (put! c (.getSelectedEmoji chooser))

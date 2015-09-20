@@ -3,6 +3,7 @@
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
 
+            [whats-next.conditions :as cnd]
             [whats-next.state :as state]
             [whats-next.utils :as $]
 
@@ -10,8 +11,19 @@
 
 (defn goals-view [app owner]
   (reify
+    om/IWillMount
+    (will-mount [_]
+      )
+
     om/IRenderState
     (render-state [_ _]
-      (dom/div
-       #js {:className "goals-container"}
-       (let [])))))
+      (let [tasks (state/task-map app)]
+        (dom/div
+         #js {:className "goals-container"}
+         ;; Show the existing goals:
+         (apply dom/ul #js {:className "goal-list"}
+                (map (fn [goal]
+                       (dom/li #js {:className "goal"}
+                               (:task goal)))
+                     (cnd/active-conditions app)))
+         (let []))))))

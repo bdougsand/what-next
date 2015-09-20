@@ -9,6 +9,7 @@
 
               ;; Views:
               [whats-next.chains :as chain]
+              [whats-next.daily :refer [daily-totals-view]]
               [whats-next.export-work :refer [export-view]]
               [whats-next.task :refer [task-view]]
               [whats-next.timeline :refer [timeline-view]]
@@ -17,6 +18,7 @@
               [whats-next.csv :as csv]
               [whats-next.emoji :as emeoji]
               [whats-next.goals :refer [goals-view]]
+              [whats-next.log :refer [log-view]]
               [whats-next.state :as state :refer [total-duration]]
               [whats-next.utils :as $])
     (:require-macros [cljs.core.async.macros :refer [go-loop go]]))
@@ -41,8 +43,9 @@
                                (:type (first (:work app))))}]))
 
 (def view-buttons
-  {:main [["Work Log" :log] ["Task Overview" goto-task-view]]
-   :timer [["Work Log" :log] ["Task Overview" goto-task-view] ["Export" :export]]
+  {:main [["Work Log" :log] ["Task Overview" goto-task-view] ["Export" :export]]
+   :timer [["Work Log" :log] ["Task Overview" goto-task-view] ["Dailies" :daily]]
+   :daily [["Back" state/go-back]]
    :log [["Back" state/go-back]]
    :task [["Back" state/go-back]]
    :export [["Back" state/go-back]]})
@@ -66,28 +69,6 @@
                    (dom/div #js {:className "status-info"}
                             "In Progress: "
                             (:type ct))))))))
-
-(defn log-view [app owner]
-  (reify
-    om/IRender
-    (render [_]
-      (let [get-type (state/task-map app)
-            current (:current-task app)]
-        (dom/div #js {:className "log-viewer"}
-                 (dom/table #js {:className "log"}
-                            (for [{:keys [type started ended]} (:work app)
-                                  :let [t (get-type type)]]
-                              (dom/tr nil
-                                      (dom/td #js {:className "log-entry"}
-                                              (dom/div #js {:className "task-name"}
-                                                       type)
-                                              (dom/div #js {:className "duration"}
-                                                       ($/pretty-duration (- ended started))
-                                                       " — "
-                                                       ($/pretty-relative-date
-                                                        ended))
-                                              (dom/div #js {:className "symbol"}
-                                                       (:symbol t)))))))))))
 
 (defn quick-buttons [app owner]
   (reify
@@ -199,7 +180,7 @@
                            "Start")
                (om/build timeline-view
                          (sequence (state/since ($/start-of-day ($/now))) (:work app))
-                         {:state {:render-width 250
+                         {:state {:render-width 320
                                   :task-map (state/task-map app)
                                   :show-labels true}})
                (om/build summary-view app)))))
@@ -213,6 +194,8 @@
                  (case v
                    :task (om/build task-view app-state
                                    {:init-state (assoc p :end-date ($/now))})
+                   :daily (om/build daily-totals-view
+                                    app-state)
                    :export (om/build export-view app-state
                                      {:init-state p})
                    :timer (om/build timer-view app-state

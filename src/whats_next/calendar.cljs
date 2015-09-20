@@ -16,6 +16,8 @@
                  ($/pretty-duration duration))))))
 
 ;; State properties:
+;;  day-count: the number of days to show in the calendar (will be
+;;   rounded to show weeks)
 ;;  transduce-work: transducer that will be applied to the work
 ;;  classify-day: function that takes a date and the work completed on
 ;;   that date and returns a string with (a) class(es) to apply to the

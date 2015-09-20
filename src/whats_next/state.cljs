@@ -18,25 +18,43 @@
                    :started (.valueOf (js/Date.))}
     :view-stack (conj (:view-stack app) [:timer])))
 
+(defn end-task [task]
+  (assoc task :ended (.valueOf (js/Date.))))
+
+(defn add-task [app task]
+  (assoc app
+         :work (conj (:work app) task)))
+
 (defn complete
   "Mark the current task as complete."
   [app]
   (let [task (:current-task app)
         type-name (:type task)
         task-type (get-type app type-name)]
-    (assoc app
+    (assoc (add-task app (end-task task))
       :current-task nil
-      :view-stack (pop (:view-stack app))
-      :work (conj (:work app)
-                  (assoc task
-                    :ended (.valueOf (js/Date.)))))))
+      :view-stack (pop (:view-stack app)))))
 
 (defn cancel
   "Cancel the current task."
   [app]
   (assoc app
-    :current-task nil
-    :view-stack (pop (:view-stack app))))
+         :current-task nil
+         ;; Save so that the task can be restored:
+         :canceled-task (end-task (:current-task app))
+         :view-stack (pop (:view-stack app))))
+
+(defn restore-canceled
+  "Moves the most recently canceled task to the work log."
+  [app]
+  (-> (add-task app (:canceled-task app))
+      (dissoc :canceled-task)))
+
+(defn restart
+  "Restart the current task."
+  [app]
+  (prn "restarting task")
+  (assoc-in app [:current-task :started] (.valueOf (js/Date.))))
 
 (defn insert-task
   "Insert a completed task at the appropriate place. Assumes that the
@@ -121,6 +139,16 @@
   "Transducer that groups tasks according to the day on which they were
   begun."
   (partition-by #($/day-components (js/Date. (:started %)))))
+
+(defn group-totals
+  "Returns a transducer that produces pairs of the form:
+
+  [(label-fn (first group)) <total duration>]"
+  [label-fn]
+  (comp (map (fn [group]
+               (when-let [f (first group)]
+                 [(label-fn f) (total-duration group)])))
+        (remove nil?)))
 
 (defn for-day
   "Returns a transducer that filters an ordered input of tasks and
@@ -211,70 +239,40 @@
      (day-groups-contiguous work (js/Date. (:started w))))))
 
 (defn daily-tasks
+  "Returns a sequence of sets corresponding "
   ([work]
    (sequence (comp
               group-days
               (map #(into #{} (map :type) %)))
              work)))
 
-(defn group-contiguous-days
-  [work ref-date]
-  (lazy-seq
-   (when-let [tasks (seq work)]
-     (let [f #($/same-day? ($/->date (:started %)) ref-date)
-           date-tasks (take-while f tasks)]
-       (cons [ref-date date-tasks]
-             (group-contiguous-days (drop (count date-tasks) tasks)
-                                    ($/dec-date ref-date 1)))))))
+(defn group-contiguous
+  ([work f n]
+   (lazy-seq
+    (when-let [tasks (seq work)]
+      (let [m-tasks (take-while #(= (f %) n) tasks)]
+        (when (seq m-tasks)
+          (cons (vec m-tasks) (group-contiguous
+                               (drop (count m-tasks) tasks)
+                               f
+                               (inc n))))))))
+  ([work f]
+   (group-contiguous work f 0)))
 
+(defn group-contiguous-days
+  ([work ref-date]
+   (let [stamp ($/->stamp ref-date)]
+     (group-contiguous work
+                       (fn [job]
+                         (quot (- stamp (:started job)) 86400000)))))
+  ([work]
+   (group-contiguous-days work ($/end-of-day (js/Date. (:started (first work)))))))
+
+(defn daily-totals
+  ([work ref-date]
+   (sequence (group-totals #(-> % :started js/Date. $/day-components))
+             (group-contiguous-days work ref-date)))
+  ([work]
+   (daily-totals work ($/end-of-day ($/now)))))
 
 ;; Managing goals
-(defn condition-active? [])
-
-(defn active-conditions
-  "Calculate or retrieve the currently active goal conditions."
-  [app]
-  )
-
-(defn add-condition [])
-
-(defmulti make-condition
-  "Convert a condition description into a reducing function."
-  first)
-
-;; Possible time conditions:
-;;  <keyword> - in the past interval
-;;  [<#> <keyword>] in the past interval
-
-(defmethod make-condition :time
-  [[_ when]]
-  (cond (keyword? when)
-        ;; Recurring goals:
-        (case when
-          :today (for-today)
-          :week (for-week)
-          :month (for-month)
-          :year (for-year))
-
-        ;;
-        (vector? when)
-        (let [[w1 w2] when]
-          (if (keyword? w2)
-            ;; Recurring goal
-            (since (- ((case w2
-                         :day $/start-of-day
-                         :week $/start-of-week
-                         :month $/start-of-month
-                         :year $/start-of-year))
-                      (* (interval w2) (dec w1))))
-
-            (between w1 w2)))))
-
-(defmethod make-condition :type
-  [[_ t]]
-  (type-filter t))
-
-(defn make-conditions-reducer
-  "Takes a sequence of conditions and returns a reducer function"
-  [conds]
-  (apply comp (map make-condition conds)))

@@ -468,3 +468,23 @@ span.task:hover .timeline-task-info {
     width: 10px;
     background-color: crimson;
 }
+
+/* Daily Totals */
+.dailies {
+    border: 1px solid darkgray;
+}
+.dailies .day {
+    font-weight: bold;
+}
+
+.daily {
+    padding: 2px;
+}
+
+.daily:nth-child(odd) {
+    background-color: white;
+}
+
+.badge {
+    float: right
+}
