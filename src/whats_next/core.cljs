@@ -161,6 +161,19 @@
     (render-state [_ {:keys [text]}]
       (dom/div #js {:className "main-container"}
                (om/build quick-buttons app)
+               (when-let [canceled (:canceled-task app)]
+                 (dom/div #js {:className "canceled-task"}
+                          (str "Did you mean to cancel '" (:type canceled) "'?")
+                          (dom/button #js {:className ""
+                                           :onClick (fn [e]
+                                                      (om/transact!
+                                                       app
+                                                       state/clear-canceled))}
+                                      "Yes")
+                          (dom/button #js {:onClick #(om/transact!
+                                                      app
+                                                      state/restore-canceled)}
+                                      "No")))
                (dom/input #js {:className "big"
                                :placeholder "What Next?"
                                :value text
@@ -171,6 +184,7 @@
                                               (om/transact!
                                                app
                                                #(state/start-task % text))))})
+
                (dom/button #js {:className "start"
                                 :type "button"
                                 :onClick (fn [e]

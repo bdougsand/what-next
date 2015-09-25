@@ -77,6 +77,15 @@ a.button:active {
     color: darkgray;
 }
 
+.canceled-task {
+    font-size: small;
+    text-align: center;
+}
+
+.canceled-task button {
+    margin: 5px;
+}
+
 button.start {
     color: blue;
     cursor: pointer;

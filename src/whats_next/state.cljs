@@ -47,14 +47,22 @@
 (defn restore-canceled
   "Moves the most recently canceled task to the work log."
   [app]
-  (-> (add-task app (:canceled-task app))
+  (-> app
+      (add-task (:canceled-task app))
       (dissoc :canceled-task)))
+
+(defn clear-canceled [app]
+  (dissoc app :canceled-task))
 
 (defn restart
   "Restart the current task."
   [app]
-  (prn "restarting task")
   (assoc-in app [:current-task :started] (.valueOf (js/Date.))))
+
+(defn edit-log [app trans]
+  (assoc app :work (into [] trans (:work app))))
+
+
 
 (defn insert-task
   "Insert a completed task at the appropriate place. Assumes that the
@@ -276,3 +284,13 @@
    (daily-totals work ($/end-of-day ($/now)))))
 
 ;; Managing goals
+
+;; Goal transducers:
+;;
+(defn rename-task
+  "Returns a transducer that "
+  [old-name new-name]
+  (map (fn [task]
+         (if (= (:type task) old-name)
+           (assoc task :type new-name)
+           task))))
