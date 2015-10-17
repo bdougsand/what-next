@@ -25,6 +25,9 @@
   (assoc app
          :work (conj (:work app) task)))
 
+(defn edit-last [{[last-work & work] :work :as app} f]
+  (assoc app :work (conj work (f last-work))))
+
 (defn complete
   "Mark the current task as complete."
   [app]
