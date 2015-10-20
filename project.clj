@@ -10,6 +10,7 @@
 
                  [org.omcljs/om "0.8.8" :exclusions [cljsjs/react]]
                  [cljsjs/react-with-addons "0.13.1-0"]
+                 [sablono "0.3.6"]
 
                  #_[cljsjs/pouchdb "3.4.0-1"]
                  ;; Persist atom to local data store.

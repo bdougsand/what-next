@@ -1,24 +1,52 @@
 (ns whats-next.conditions
-  "Condition format:
+  "Goal format:
 
-  [:time "
+  {:conditions [Condition],
+   :total milliseconds }
+
+Condition format:
+
+  [:time :daily] - this is a daily goal. Other valid
+  keywords: :weekly, :monthly, etc.
+
+  [:time [start-time end-time]]
+
+  [:type keyword] - goal applies to tasks of a particular type"
   (:require [whats-next.state :as s]
             [whats-next.utils :as $]))
 
-(defn condition-active? [])
+(defn condition-active? [[condition-type condition]]
+  (or (not= condition-type :time)
+      (or (keyword? condition)
+          (and (vector? condition)
+               (< (second condition) ($/->stamp ($/now)))))))
+
+(defn goal-active? [goal]
+  (every? condition-active? (:conditions goal)))
 
 (defn active-conditions
   "Calculate or retrieve the currently active goal conditions."
   [app]
-  ;; TODO: Complete this implementation
-  (:goals app))
+  (:active-goals app))
+
+(defn cleanup-conditions
+  "Remove conditions that are no longer active, recording whether they
+  were successfully completed or not."
+  [app]
+  ())
 
 (defn add-condition [app goal]
-  (assoc app :goals (conj (:goals app []) goal)))
+  (assoc app :active-goals (conj (:active-goals app []) goal)))
 
 (defmulti make-condition
   "Convert a condition description into a reducing function."
   first)
+
+(def name-for-recurring
+  {{:daily "every day"
+    :weekly "every week"
+    :monthly "every month"
+    :yearly "every year"}})
 
 ;; Possible time conditions:
 ;;  <keyword> - in the past interval
@@ -29,25 +57,13 @@
   (cond (keyword? when)
         ;; Recurring goals:
         (case when
-          :today (s/for-today)
-          :week (s/for-week)
-          :month (s/for-month)
-          :year (s/for-year))
+          :daily (s/for-today)
+          :weekly (s/for-week)
+          :monthly (s/for-month)
+          :yearly (s/for-year))
 
-        ;;
         (vector? when)
-        (let [[w1 w2] when]
-          (if (keyword? w2)
-            ;; Recurring goal
-            (s/since ($/inc-type
-                      ((case w2
-                         :day $/start-of-day
-                         :week $/start-of-week
-                         :month $/start-of-month
-                         :year $/start-of-year))
-                      w2 (- (dec w1))))
-
-            (s/between w1 w2)))))
+        (s/between (first when) (second when))))
 
 (defmethod make-condition :type
   [[_ t]]

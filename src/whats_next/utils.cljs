@@ -122,10 +122,19 @@
   (and (= (.getMonth d) (.getMonth dr))
        (= (.getYear d) (.getYear dr))))
 
-(defn yesterday? [d dr]
-  (and (= (.getFullYear d) (.getFullYear dr))
-       (= (.getMonth d) (.getMonth dr))
-       (= (.getDate d) (dec (.getDate dr)))))
+(declare dec-date inc-date start-of-day)
+(defn yesterday?
+  "Is date d yesterday with respect to dr?"
+  [d dr]
+  (= (start-of-day d)
+     (dec-date (start-of-day dr))))
+
+
+(defn tomorrow?
+  "Is Date d 'tomorrow' with respect to dr?"
+  [d dr]
+  (= (start-of-day d)
+     (inc-date (start-of-day dr))))
 
 (defn recent? [d dr]
   (> (* 86400000 5) (- (->stamp dr) (->stamp d))))
@@ -237,7 +246,7 @@
   (.format date-formatter d))
 
 (defn pretty-relative-date
-  "Returns a string describing the Date d with respect to "
+  "Returns a string describing the Date d with respect to Date dr."
   ([d dr]
    (let [elapsed (- (->stamp dr) (->stamp d))
          d (->date d)

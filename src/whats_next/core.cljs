@@ -42,13 +42,15 @@
         [:task {:task-type (or (:type (:current-task app))
                                (:type (first (:work app))))}]))
 
-(def view-buttons
-  {:main [["Work Log" :log] ["Task Overview" goto-task-view] ["Export" :export]]
-   :timer [["Work Log" :log] ["Task Overview" goto-task-view] ["Dailies" :daily]]
-   :daily [["Back" state/go-back]]
-   :log [["Back" state/go-back]]
-   :task [["Back" state/go-back]]
-   :export [["Back" state/go-back]]})
+(def view-buttons-map
+  {:main [["Work Log" :log]
+          ["Task Overview" goto-task-view]
+          ["Goals" :goals]
+          #_["Export" :export]]
+   :timer [["Work Log" :log] ["Task Overview" goto-task-view] ["Dailies" :daily]]})
+
+(defn view-buttons [view]
+  (view-buttons-map view [["Back" state/go-back]]))
 
 (defn navbar-view [app owner]
   (reify
@@ -210,6 +212,7 @@
                                    {:init-state (assoc p :end-date ($/now))})
                    :daily (om/build daily-totals-view
                                     app-state)
+                   :goals (om/build goals-view app-state)
                    :export (om/build export-view app-state
                                      {:init-state p})
                    :timer (om/build timer-view app-state
