@@ -293,3 +293,16 @@
 
 (defn cancel [e]
   (doto e (.stopPropagation) (.preventDefault)))
+
+(defn commas
+  "Returns a comma-separated list string of the strings in coll."
+  ([coll conjunction]
+   (let [init (butlast coll)
+         end (last coll)]
+     (str (when init
+            (str (apply str (interpose ", " init))
+                 (when (second init) ",")
+                 " " conjunction " "))
+          end)))
+  ([coll]
+   (commas coll "and")))

@@ -1,7 +1,7 @@
 (ns whats-next.conditions
   "Goal format:
 
-  {:conditions [Condition],
+  {:conditions {type => condition}
    :total milliseconds }
 
 Condition format:
@@ -11,7 +11,7 @@ Condition format:
 
   [:time [start-time end-time]]
 
-  [:type keyword] - goal applies to tasks of a particular type"
+  [:type #{keywords}] - goal applies to tasks of particular type(s)"
   (:require [whats-next.state :as s]
             [whats-next.utils :as $]))
 
@@ -33,7 +33,7 @@ Condition format:
   "Remove conditions that are no longer active, recording whether they
   were successfully completed or not."
   [app]
-  ())
+  )
 
 (defn add-condition [app goal]
   (assoc app :active-goals (conj (:active-goals app []) goal)))
@@ -43,10 +43,10 @@ Condition format:
   first)
 
 (def name-for-recurring
-  {{:daily "every day"
-    :weekly "every week"
-    :monthly "every month"
-    :yearly "every year"}})
+  {:daily "every day"
+   :weekly "every week"
+   :monthly "every month"
+   :yearly "every year"})
 
 ;; Possible time conditions:
 ;;  <keyword> - in the past interval
