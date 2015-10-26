@@ -24,6 +24,18 @@ Condition format:
 (defn goal-active? [goal]
   (every? condition-active? (:conditions goal)))
 
+(defn valid-goal? [goal]
+  (pos? (:total goal)))
+
+(defn day-condition
+  "Create a goal condition that a goal has to be completed on a
+  particular day. Defaults to today if no argument is given."
+  ([d]
+   (let [start ($/start-of-day d)]
+     {:time [start ($/inc-date d)]}))
+  ([]
+   (day-condition ($/now))))
+
 (defn active-conditions
   "Calculate or retrieve the currently active goal conditions."
   [app]
@@ -73,3 +85,18 @@ Condition format:
   "Takes a sequence of conditions and returns a reducer function"
   [conds]
   (apply comp (map make-condition conds)))
+
+(defn goal-duration [goal work]
+  (s/total-duration
+   (sequence (make-conditions-reducer (:conditions goal)) work)))
+
+(defn goal-progress
+  [goal work]
+  (/ (goal-duration goal work) (:total goal)))
+
+
+
+
+;; Managing app goals
+(defn clear-active-goals [app]
+  (assoc app :active-goals []))

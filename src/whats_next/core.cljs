@@ -9,6 +9,7 @@
 
               ;; Views:
               [whats-next.chains :as chain]
+              [whats-next.conditions :as cnd]
               [whats-next.daily :refer [daily-totals-view]]
               [whats-next.export-work :refer [export-view]]
               [whats-next.task :refer [task-view]]

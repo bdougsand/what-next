@@ -7,6 +7,11 @@
 (defn get-type [app n]
   ($/find-pred #(= n (:name %)) (:task-types app)))
 
+(defn last-task [app]
+  (-> app :work pop))
+
+(def last-type (comp :type last-task))
+
 (defn start-task [{:keys [task-types] :as app} type-name]
   (assoc app
     :task-types (if-let [t (get-type app type-name)]
