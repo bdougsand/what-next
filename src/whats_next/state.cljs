@@ -7,8 +7,8 @@
 (defn get-type [app n]
   ($/find-pred #(= n (:name %)) (:task-types app)))
 
-(defn last-task [app]
-  (-> app :work pop))
+(def last-task
+  (comp peek :work))
 
 (def last-type (comp :type last-task))
 
@@ -40,7 +40,8 @@
         type-name (:type task)
         task-type (get-type app type-name)]
     (assoc (add-task app (end-task task))
-      :current-task nil
+           :current-task nil
+           :canceled-task nil
       :view-stack (pop (:view-stack app)))))
 
 (defn cancel
