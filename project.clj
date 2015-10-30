@@ -16,7 +16,7 @@
                  [alandipert/storage-atom "1.2.4"]]
 
   :plugins [[lein-cljsbuild "1.0.5"]
-            [lein-figwheel "0.2.9"]
+            [lein-figwheel "0.4.1"]
             [lein-doo "0.1.6-SNAPSHOT"]]
 
   :source-paths ["src"]

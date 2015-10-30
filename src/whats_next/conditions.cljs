@@ -95,8 +95,6 @@ Condition format:
   (/ (goal-duration goal work) (:total goal)))
 
 
-
-
 ;; Managing app goals
 (defn clear-active-goals [app]
   (assoc app :active-goals []))

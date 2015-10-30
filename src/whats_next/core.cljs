@@ -26,12 +26,6 @@
 
 (enable-console-print!)
 
-(defonce css-react-class
-  (-> js/React (aget "addons") (aget "CSSTransitionGroup")))
-
-(defonce css-transition
-  (.createFactory js/React css-react-class))
-
 (defonce app-state
   (local-storage (atom {:view :main
                         :view-stack [[:main]]})

@@ -9,36 +9,13 @@
             [whats-next.state :as state]
             [whats-next.utils :as $]))
 
-
-(defn render-goal [work goal]
-  (html
-   (let [{:keys [total conditions]} goal
-         {:keys [type time]} conditions]
-     [:li.goal
-      [:span.duration ($/pretty-duration-med total)]
-      " on "
-      [:span.tasks (cond (set? type) ($/commas type "or")
-                         (keyword? type) (str type)
-                         (nil? type) "all tasks")]
-
-      [:span.time
-       (cond (keyword? time) (str " " (cnd/name-for-recurring time))
-             (vector? time) (str " between " ($/pretty-relative-date
-                                              (first time))
-                                 " and " ($/pretty-relative-date
-                                          (second time)))
-             (nil? time) " total ")]
-      (let [progress (cnd/goal-progress goal work)]
-        [:span.progress
-         (js/Math.floor (* 100 progress)) "%"])])))
-
 (defn- make-goal [owner]
   (let [{:keys [task goaltype time]} (om/get-state owner)]
-    {:conditions {:time (case goaltype
-                          "today" (cnd/day-condition)
-                          "tomorrow" (cnd/day-condition ($/inc-date ($/now)))
-                          (keyword goaltype))
-                  :type task}
+    {:conditions (merge (case goaltype
+                             "today" (cnd/day-condition)
+                             "tomorrow" (cnd/day-condition ($/inc-date ($/now)))
+                             {:time (keyword goaltype)})
+                        {:type task})
      :total (* time 60000)}))
 
 (defn- add-goal [app owner]
@@ -50,6 +27,10 @@
                                                      goal))))
       goal)))
 
+(defn- remove-goal [app goal]
+  (om/transact! app (fn [app]
+                      (assoc app
+                             :active-goals (vec (remove (partial = goal) (:active-goals app)))))))
 
 (defn- on-change [owner]
   (fn [e]
@@ -62,6 +43,32 @@
 
 (defn unset-multi! [owner & ks]
   (doseq [k ks] (om/set-state! owner k nil)))
+
+(defn render-goal [app goal]
+  (html
+   (let [work (:work app)
+         {:keys [total conditions]} goal
+         {:keys [type time]} conditions]
+     [:li.goal
+      [:span.duration ($/pretty-duration-med total)]
+      " on "
+      [:span.tasks (cond (set? type) ($/commas type "or")
+                         (string? type) (prn-str type)
+                         (nil? type) "all tasks")]
+
+      [:span.time
+       (cond (keyword? time) (str " " (cnd/name-for-recurring time))
+             (vector? time) (str ($/pretty-relative-date (first time))
+                                 " through "
+                                 ($/pretty-relative-date (second time)))
+             (nil? time) " total ")]
+      #_
+      (let [progress (cnd/goal-progress goal work)]
+        [:span.progress
+         (js/Math.floor (* 100 progress)) "%"])
+
+      [:a.delete {:onClick #(remove-goal app goal)
+                  :href "#"} "x"]])))
 
 (defn goals-view [app owner]
   (reify
@@ -78,7 +85,7 @@
            [:div.goals-container
             [:ul.goal-list
              (if-let [active (seq (:active-goals app))]
-               (map (partial render-goal) active)
+               (map (partial render-goal app) active)
 
                [:span.empty "No active goals"])]
             [:button {:onClick (fn [e]
@@ -89,11 +96,9 @@
             [:h3 "Add Goal"]
             [:form {:onSubmit (fn [e]
                                 (add-goal app owner)
-                                #_
-                                (if (add-goal app owner)
-                                  (unset-multi! owner :task :goaltype :time))
                                 ($/cancel e))}
              [:input {:type "number"
+                      :min "1"
                       :value (or time 25)
                       :name "time"
                       :onChange (on-change owner)}]
