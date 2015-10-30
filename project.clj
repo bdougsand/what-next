@@ -4,12 +4,11 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
-  :dependencies [[org.clojure/clojure "1.7.0-beta2"]
-                 [org.clojure/clojurescript "0.0-3269"]
-                 [org.clojure/core.async "0.1.346.0-17112a-alpha"]
+  :dependencies [[org.clojure/clojure "1.7.0"]
+                 [org.clojure/clojurescript "1.7.145"]
+                 [org.clojure/core.async "0.2.371"]
 
-                 [org.omcljs/om "0.8.8" :exclusions [cljsjs/react]]
-                 [cljsjs/react-with-addons "0.13.1-0"]
+                 [org.omcljs/om "0.9.0"]
                  [sablono "0.3.6"]
 
                  #_[cljsjs/pouchdb "3.4.0-1"]
@@ -17,36 +16,42 @@
                  [alandipert/storage-atom "1.2.4"]]
 
   :plugins [[lein-cljsbuild "1.0.5"]
-            [lein-figwheel "0.2.9"]]
+            [lein-figwheel "0.2.9"]
+            [lein-doo "0.1.6-SNAPSHOT"]]
 
   :source-paths ["src"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"]
 
   :cljsbuild {
-    :builds [{:id "dev"
-              :source-paths ["src"]
+              :builds [{:id "dev"
+                        :source-paths ["src"]
 
-              :figwheel { :on-jsload "whats-next.core/on-js-reload" }
+                        :figwheel { :on-jsload "whats-next.core/on-js-reload" }
 
-              :compiler {:main whats-next.core
-                         :asset-path "js/compiled/out"
-                         :output-to "resources/public/js/compiled/whats_next.js"
-                         :output-dir "resources/public/js/compiled/out"
-                         :optimizations :none
-                         :source-map true
-                         :source-map-timestamp true
-                         :cache-analysis true }}
-             {:id "min"
-              :source-paths ["src"]
-              :compiler {:output-to "resources/public/js/compiled/whats_next.js"
-                         :main whats-next.core
-                         :optimizations :advanced
-                         :pretty-print false}}]}
+                        :compiler {:main whats-next.core
+                                   :asset-path "js/compiled/out"
+                                   :output-to "resources/public/js/compiled/whats_next.js"
+                                   :output-dir "resources/public/js/compiled/out"
+                                   :optimizations :none
+                                   :source-map true
+                                   :source-map-timestamp true
+                                   :cache-analysis true }}
+                       {:id "test"
+                        :source-paths ["src" "test"]
+                        :compiler {:main whats-next.runner
+                                   :output-to "resources/public/js/compiled/testable.js"
+                                   :optimizations :none}}
+                       {:id "min"
+                        :source-paths ["src"]
+                        :compiler {:output-to "resources/public/js/compiled/whats_next.js"
+                                   :main whats-next.core
+                                   :optimizations :advanced
+                                   :pretty-print false}}]}
 
   :figwheel {
              ;; :http-server-root "public" ;; default and assumes "resources"
-             :server-port 3450 ;; default
+             :server-port 3450                  ;; default
              :css-dirs ["resources/public/css"] ;; watch and update CSS
 
              ;; Start an nREPL server into the running figwheel process
