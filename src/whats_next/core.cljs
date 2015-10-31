@@ -27,8 +27,7 @@
 (enable-console-print!)
 
 (defonce app-state
-  (local-storage (atom {:view :main
-                        :view-stack [[:main]]})
+  (local-storage (atom (state/clean-state))
                  :app))
 
 (defn goto-task-view

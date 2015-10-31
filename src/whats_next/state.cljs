@@ -4,6 +4,12 @@
 
             [whats-next.utils :as $]))
 
+(defn clean-state []
+  {:view :main
+   :view-stack [[:main]]
+   :work ()
+   :task-types nil})
+
 (defn get-type [app n]
   ($/find-pred #(= n (:name %)) (:task-types app)))
 
@@ -12,7 +18,12 @@
 
 (def last-type (comp :type last-task))
 
-(defn start-task [{:keys [task-types] :as app} type-name]
+(def current-task :current-task)
+
+(defn goto [app view]
+  (assoc app :view-stack (conj (:view-stack app) [view])))
+
+(defn start-current-task [{:keys [task-types] :as app} type-name]
   (assoc app
     :task-types (if-let [t (get-type app type-name)]
                   task-types
@@ -20,8 +31,12 @@
                         {:name type-name
                          :symbol (first type-name)}))
     :current-task {:type type-name
-                   :started (.valueOf (js/Date.))}
-    :view-stack (conj (:view-stack app) [:timer])))
+                   :started (.valueOf (js/Date.))}))
+
+(defn start-task [app type-name]
+  (-> app
+      (start-current-task type-name)
+      (goto :timer)))
 
 (defn end-task [task]
   (assoc task :ended (.valueOf (js/Date.))))
