@@ -112,7 +112,7 @@
                                                       % text))
                                                    (set! (.. e -target -value) "")
                                                    (.preventDefault e)))))
-                                :placeholder "Add note"})
+                                :placeholder "Add notes"})
                           (when notes
                             (dom/div #js {:className "show-notes"}
                                      (dom/ul nil

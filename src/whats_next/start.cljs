@@ -59,23 +59,24 @@
   "Constructs a component that summarizes the day's work."
   [app owner]
   (reify
-    om/IRender
-    (render [_]
-      (let [work (into [] (state/for-today) (:work app))
-            groups (group-by :type work)
-            tmap (state/task-map app)]
-        (dom/div #js {:className "day-summary"}
-                 (dom/div #js {:className "title"}
-                          ($/pretty-date ($/now)))
-                 (for [[type-name tasks] groups]
-                   (let [task-type (tmap type-name)]
-                     (dom/div #js {:className "task-summary"}
-                              (dom/span #js {:className "symbol"}
-                                        (:symbol task-type))
-                              (dom/span #js {:className "amount"}
-                                        ($/pretty-duration (total-duration tasks))))))
-                 (dom/div #js {:className "all-tasks-summary"}
-                          ($/pretty-duration (total-duration work))))))))
+      om/IRender
+      (render [_]
+        (let [work (into [] (state/for-today) (:work app))
+              groups (group-by :type work)
+              tmap (state/task-map app)]
+          (dom/div #js {:className "day-summary"}
+                   (dom/div #js {:className "title"}
+                            ($/pretty-date ($/now)))
+                   (apply dom/div
+                          (for [[type-name tasks] groups]
+                            (let [task-type (tmap type-name)]
+                              (dom/div #js {:className "task-summary"}
+                                       (dom/span #js {:className "symbol"}
+                                                 (:symbol task-type))
+                                       (dom/span #js {:className "amount"}
+                                                 ($/pretty-duration (total-duration tasks)))))))
+                   (dom/div #js {:className "all-tasks-summary"}
+                            ($/pretty-duration (total-duration work))))))))
 
 (defn start-view [app owner]
   (reify

@@ -54,7 +54,7 @@
       (let [[view] (peek (:view-stack app))]
         (dom/div nil
                  (dom/table #js {:className "navbar"}
-                    (dom/tr nil
+                    (apply dom/tr nil
                             (for [[label goto] (view-buttons view)]
                               (dom/td #js {:className "nav-button"
                                            :key label}
