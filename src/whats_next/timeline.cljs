@@ -10,6 +10,8 @@
 
   State properties:
 
+  - xf: Transducer for work
+
   - timeline- duration: The total time represented by the timeline. The
   calculated total duration of the given work will be used if this is
   not provided.
@@ -22,15 +24,17 @@
   - render-width: The width, in pixels, of the timeline
 
   - show-labels: If true, show label text in the task blocks."
-  [work owner]
+  [app owner]
   (reify
       om/IRenderState
       (render-state [_ {:keys [guide-width include-gaps
                                render-width show-labels
-                               task-map timeline-duration]
+                               task-map timeline-duration
+                               xf]
                         :or {guide-width 1500000
-                             render-width 150}}]
-        (let [work (if include-gaps (into [] (state/with-gaps) work) work)
+                             render-width 150
+                             xf (state/since ($/start-of-day ($/now)))}}]
+        (let [work (sequence xf (:work app))
               total (or timeline-duration (total-duration work))]
           (dom/div #js {:className "timeline-container"}
                    (apply dom/div
@@ -42,24 +46,18 @@
                                       :style #js {:left (* i w)
                                                   :width w}})))))
                    (apply dom/div
-                          (for [[{ttype :type :as task} ntask] (partition 2 1 (reverse (cons nil work)))
+                          #js {}
+                          (for [{ttype :type :as task} (reverse work)
                                 :let [d (duration task)
-                                      p (/ d total)
-                                      w (* render-width p)]]
-                            (if (state/gap? task)
-                              (dom/span #js {:className "gap"
-                                             :style #js {:width w}})
-
-                              (dom/span #js {:className (str "task "
-                                                             (when (= ttype (:type ntask))
-                                                               "same-as-next"))
-                                             :data-taskType ttype
-                                             :style #js {:width w}}
-                                        (when show-labels
+                                      p (/ d total)]]
+                            (dom/span #js {:className "task"
+                                           :data-tasktype ttype
+                                           :style #js {:width (* render-width p)}}
+                                      (when show-labels
                                           (dom/strong nil
                                                       (or (get-in task-map [ttype :symbol])
                                                           (:type task))))
-                                        (dom/div
+                                      (dom/div
                                          #js {:className "timeline-task-info"}
                                          (dom/strong nil ttype)
                                          (dom/br nil)
@@ -73,7 +71,7 @@
                                          (when-let [notes (:notes task)]
                                            (dom/ul nil
                                                    (for [note notes]
-                                                     (dom/li nil note)))))))))
+                                                     (dom/li nil note))))))))
 
                    ;; When gaps are included, show the start time of the
                    ;; first task on the timeline.

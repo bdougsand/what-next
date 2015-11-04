@@ -6,7 +6,7 @@
 
             [whats-next.timeline :refer [timeline-view]]
 
-            [whats-next.state :as state :refer [total-duration]]
+            [whats-next.state :as state :refer [duration total-duration]]
             [whats-next.utils :as $])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
@@ -67,16 +67,20 @@
           (dom/div #js {:className "day-summary"}
                    (dom/div #js {:className "title"}
                             ($/pretty-date ($/now)))
-                   (apply dom/div
-                          (for [[type-name tasks] groups]
-                            (let [task-type (tmap type-name)]
-                              (dom/div #js {:className "task-summary"}
-                                       (dom/span #js {:className "symbol"}
-                                                 (:symbol task-type))
-                                       (dom/span #js {:className "amount"}
-                                                 ($/pretty-duration (total-duration tasks)))))))
+                   (apply dom/div nil
+                          (for [group (partition-all 5 groups)]
+                            (apply dom/div
+                                   #js {:className "summary-group"}
+                                   (for [[type-name tasks] group]
+                                     (let [task-type (tmap type-name)]
+                                       (dom/div #js {:className "task-summary"}
+                                                (dom/span #js {:className "symbol"}
+                                                          (:symbol task-type))
+                                                (dom/span #js {:className "amount"}
+                                                          ($/pretty-duration (total-duration tasks)))))))))
                    (dom/div #js {:className "all-tasks-summary"}
                             ($/pretty-duration (total-duration work))))))))
+
 
 (defn start-view [app owner]
   (reify
@@ -134,8 +138,9 @@
                                             #(state/start-task % text)))}
                            "Start")
                (om/build timeline-view
-                         (sequence (state/since ($/start-of-day ($/now))) (:work app))
+                         app
                          {:state {:render-width 320
+                                  ;;:xf (state/since ($/start-of-day ($/now)))
                                   :task-map (state/task-map app)
                                   :show-labels true}})
                (om/build summary-view app)))))

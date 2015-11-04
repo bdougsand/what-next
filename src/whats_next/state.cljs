@@ -5,8 +5,7 @@
             [whats-next.utils :as $]))
 
 (defn clean-state []
-  {:view :main
-   :view-stack [[:main]]
+  {:view-stack [[:main]]
    :work ()
    :task-types nil})
 

@@ -1,4 +1,4 @@
-(ns ^:figwheel-always whats-next.core
+(ns whats-next.core
     (:require [cljs.core.async :refer [<! >! chan close! timeout]]
 
               [om.core :as om :include-macros true]
@@ -14,7 +14,6 @@
               [whats-next.export-work :refer [export-view]]
               [whats-next.start :refer [start-view]]
               [whats-next.task :refer [task-view]]
-              [whats-next.timeline :refer [timeline-view]]
               [whats-next.timer :refer [timer-view]]
 
               [whats-next.csv :as csv]
@@ -111,6 +110,6 @@
   ;; your application
   ;; (swap! app-state update-in [:__figwheel_counter] inc)
 
-  (println "Reloaded")
+  (js/console.log "Reloaded")
 
   (main))

@@ -10,6 +10,7 @@ a {
 
 .app-container {
     background-color: aliceblue;
+    box-shadow: 2px 2px 4px black;
     display: block;
     height: 600px;
     padding: 10px;
@@ -20,8 +21,10 @@ a {
 /* Start View */
 input.big {
     font-size: xx-large;
+    margin: auto;
     margin-bottom: 35px;
     text-align: center;
+    width: 100%;
 }
 
 .qb-container {
@@ -116,6 +119,11 @@ button.start {
     text-decoration: underline;
 }
 
+.day-summary .summary-group {
+    display: inline-block;
+    width: 150px;
+}
+
 .task-summary {
     padding-bottom: 3px;
 }
@@ -145,7 +153,6 @@ button.start {
     height: 50px;
     left: 0;
     position: absolute;
-    right: 0;
     width: 100%;
 }
 
