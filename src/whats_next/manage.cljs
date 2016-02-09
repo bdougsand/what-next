@@ -16,6 +16,9 @@
       (html
        [:div.manager-container
         [:h3 "Rename Task"]
+        [:label "Task" [:input.text]]
+        [:label "New Name:" [:input.text]]
+
         [:h3 "Delete Task"]
         (task-selector app #(om/set-state! owner :delete-task %)
                        delete-task)]))))

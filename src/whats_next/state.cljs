@@ -85,8 +85,6 @@
 (defn edit-log [app trans]
   (assoc app :work (into [] trans (:work app))))
 
-
-
 (defn insert-task
   "Insert a completed task at the appropriate place. Assumes that the
   task was relatively recent."
@@ -298,6 +296,28 @@
                          (quot (- stamp (:started job)) 86400000)))))
   ([work]
    (group-contiguous-days work ($/end-of-day (js/Date. (:started (first work)))))))
+
+#_
+(defn group-days
+  ([work ref-date]
+   (lazy-seq
+    (when (seq work)
+      (let [start (-> ref-date $/start-of-day $/->stamp)
+            dw (take-while (fn [job]
+                             (let [diff (- (:started job) start)]
+                               (and (> diff 0) (< diff 86400000))))
+                           work)]
+        (cons [($/day-components ref-date) dw]
+              (group-days (drop (count dw) work) ($/dec-date ref-date)))))))
+  ([work]
+   (daily-totals-2 work ($/end-of-day ($/now)))))
+
+(defn daily-work
+  ([work ref-date]
+   ($/combine-with
+    (fn [])
+    (sequence group-days )
+    (take 10 (iterate $/dec-date ($/now))))))
 
 (defn daily-totals
   ([work ref-date]

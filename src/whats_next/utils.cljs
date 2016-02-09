@@ -177,8 +177,10 @@
    (inc-date d 1)))
 
 (defn dec-date
-  [d days]
-  (js/Date. (- (.getTime d) (* days ms-in-day))))
+  ([d days]
+   (js/Date. (- (.getTime d) (* days ms-in-day))))
+  ([d]
+   (dec-date d 1)))
 
 (defn date-range
   "Returns a lazy sequence of Date objects, starting at Date d1 and
@@ -306,3 +308,11 @@
           end)))
   ([coll]
    (commas coll "and")))
+
+(defn combine-with [f [x :as xs] [y & ys]]
+  (when x
+    (lazy-seq
+     (let [z (f x y)]
+       (cons (or z x) (combine-with f (if z (rest xs) xs) ys))))))
+
+;; [date1]  [

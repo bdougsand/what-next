@@ -1,7 +1,6 @@
 /* some style */
 body {
-    background-color: darkgray;
-    font-family: "Lucida Grande";
+    font-family: "Avenir";
 }
 
 a {
@@ -11,7 +10,8 @@ a {
 .app-container {
     background-color: aliceblue;
     box-shadow: 2px 2px 4px black;
-    display: block;
+    display: flex;
+    flex-direction: column;
     height: 600px;
     padding: 10px;
     position: absolute;
@@ -21,22 +21,23 @@ a {
 /* Start View */
 input.big {
     font-size: xx-large;
-    margin: auto;
     margin-bottom: 35px;
     text-align: center;
-    width: 100%;
 }
 
 .qb-container {
-    padding-bottom: 20px;
+    flex: 1;
+    align-self: flex-start;
+    align-items: center;
+    justify-content: center;
+    margin: 40px;
+    margin-top: 30px;
 }
 
 .quick-buttons {
     background-color: white;
     box-shadow: 0 0 5px maroon inset;
-    margin: auto;
     padding: 5px;
-    width: 60%;
 }
 
 .quick-buttons.empty {
@@ -90,7 +91,6 @@ a.button:active {
 }
 
 button.start {
-    color: blue;
     cursor: pointer;
     display: block;
     font-size: xx-large;
@@ -224,10 +224,10 @@ button.start {
 
 .actions {
     background-color: rgba(255, 255, 255, 0.1);
-    margin: auto;
     margin-top: 10px;
-    text-align: center;
-    width: 60%;
+    flex: 1;
+    flex-direction: row;
+    justify-content: center;
 }
 
 .action {
@@ -239,6 +239,7 @@ button.start {
     height: 45px;
     margin: 15px;
     width: 45px;
+    text-align: center;
 
     transition: box-shadow 0.2s;
 }
@@ -293,7 +294,7 @@ button.start {
 }
 
 .show-notes {
-    font-family: "Courier New";
+    font-family: monospace;
     font-size: small;
 }
 

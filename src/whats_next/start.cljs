@@ -24,22 +24,23 @@
                  (dom/div #js {:className (str "quick-hover"
                                                (when-not hover-type
                                                  " empty"))}
-                  (:name hover-type
-                         "Quick Start"))
-         (apply dom/div #js {:className "quick-buttons"}
-                (for [task-type (state/recent-types app 10)]
-                  (dom/a #js {:className "button"
-                              :href "#"
-                              :title (str "Start Working on \"" (:name task-type) "\"")
-                              :onMouseEnter #(om/set-state! owner :hover-type task-type)
-                              :onMouseLeave #(om/set-state! owner :hover-type nil)
-                              :onFocus #(om/set-state! owner :hover-type task-type)
-                              :onBlur #(om/set-state! owner :hover-type nil)
-                              :onClick #(om/transact! app
-                                                      (fn [app] (state/start-task app (:name task-type))))} (:symbol task-type)))))
+                          (:name hover-type
+                                 "Quick Start"))
+                 (apply dom/div #js {:className "quick-buttons"}
+                        (for [task-type (state/recent-types app 10)]
+                          (dom/a #js {:className "button"
+                                      :href "#"
+                                      :title (str "Start Working on \"" (:name task-type) "\"")
+                                      :onMouseEnter #(om/set-state! owner :hover-type task-type)
+                                      :onMouseLeave #(om/set-state! owner :hover-type nil)
+                                      :onFocus #(om/set-state! owner :hover-type task-type)
+                                      :onBlur #(om/set-state! owner :hover-type nil)
+                                      :onClick #(om/transact! app
+                                                              (fn [app] (state/start-task app (:name task-type))))} (:symbol task-type)))))
 
-        (dom/div #js {:className "quick-buttons empty"}
-                 "No Recent Tasks")))))
+        (dom/div #js {:className "qb-container"}
+                 (dom/div #js {:className "quick-buttons empty"}
+                          "No Recent Tasks"))))))
 
 (defn task-summary
   [_ owner]
